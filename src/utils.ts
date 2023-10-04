@@ -42,10 +42,6 @@ export const fetchPeople = async (baseUri?: string): Promise<IPersonData[] | und
     if (baseUri) {
         const persons = await Person.from(baseUri + "/people/").all();
         return persons?.map(p => ({ ...p.getAttributes(true) }) as IPersonData)
-        // return persons?.map(p => ({
-        //     url: p.getAttribute("url"),
-        //     name: p.getAttribute("name")
-        // }))
     }
 }
 
