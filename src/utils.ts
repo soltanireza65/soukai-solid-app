@@ -10,15 +10,16 @@ import { bootModels, getEngine, setEngine } from "soukai";
 import {
     Fetch,
     SolidEngine,
+    SolidTypeIndex,
     // SolidTypeIndex,
     SolidTypeRegistration,
     bootSolidModels,
 } from "soukai-solid";
 import { Bookmark } from "@soukai-solid-data-modules/modules/Bookmarks";
 import { TypeIndex } from "./soukai-solid-data-modules";
-import { SolidUserProfile, createSolidDocument, fetchSolidDocument, solidDocumentExists, updateSolidDocument } from "@noeldemartin/solid-utils";
+import { createSolidDocument, fetchSolidDocument, solidDocumentExists, updateSolidDocument } from "@noeldemartin/solid-utils";
 import { v4 } from "uuid";
-import SolidTypeIndex from "./soukai-solid-data-modules/modules/SolidTypeIndex";
+// import SolidTypeIndex from "./soukai-solid-data-modules/modules/SolidTypeIndex";
 
 
 export async function doLogin() {
