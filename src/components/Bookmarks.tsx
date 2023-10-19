@@ -1,49 +1,11 @@
-import { fetchContainerUrl } from "@/utils";
-import {
-  Box,
-  Button,
-  Flex,
-  Input,
-  Link,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
-} from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import { getPodUrlAll } from "@inrupt/solid-client";
 import {
-  Bookmark,
-  BookmarkFactory,
+  Bookmark, BookmarkFactory
 } from "@soukai-solid-data-modules/modules/Bookmarks";
 import { FC, useEffect, useState } from "react";
 import { SolidModel } from "soukai-solid";
 import { useUserSession } from "../atoms/userSession.atom";
-
-const getFactory = async ({
-  fetch,
-  containerUrl,
-  baseURL,
-  webId,
-  typeIndexUrl
-}: {
-  fetch: any;
-  containerUrl: string;
-  baseURL: string;
-  webId: string;
-  typeIndexUrl?: string;
-}) => {
-  const _containerUrl = await fetchContainerUrl({
-    fetch: fetch,
-    forClass: Bookmark.rdfsClasses[0],
-    baseURL: baseURL,
-    webId: webId,
-    typeIndexUrl: typeIndexUrl,
-  });
-  return BookmarkFactory.getInstance(_containerUrl ?? containerUrl);
-};
 
 const Bookmarks: FC = () => {
   let pod: string = "";
@@ -52,17 +14,16 @@ const Bookmarks: FC = () => {
   const [bookmarks, setBookmarks] = useState<(Bookmark & SolidModel)[]>([]);
 
   const init = async () => {
-    pod = await getPodUrlAll(userSession?.info.webId ?? "", {
-      fetch: userSession?.fetch,
-    }).then((pods) => pods[0]);
-    // userSession?.fetch, pod + "bookmarks/"
-    const factory = await getFactory({
+    pod = await getPodUrlAll(userSession?.info.webId ?? "", { fetch: userSession?.fetch, }).then((pods) => pods[0])
+
+    const factory = await BookmarkFactory.getInstance({
       baseURL: pod,
       containerUrl: pod + "bookmarks/",
       fetch: userSession?.fetch,
       webId: userSession?.info.webId ?? "",
-      // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl"
+      forClass:Bookmark.rdfsClasses[0]
     });
+
     const bookmarks = await factory.getAll();
     setBookmarks(bookmarks);
   };
@@ -71,82 +32,60 @@ const Bookmarks: FC = () => {
     init().then(() => { });
   }, [userSession]);
 
-  //   public async initializeRemoteUsing(cookbook: SolidContainer): Promise<void> {
-  //     const user = Auth.requireUser();
-  //     const engine = Auth.requireAuthenticator().engine;
-
-  //     await SolidContainer.withEngine(engine, async () => {
-  //         const typeIndexUrl = user.privateTypeIndexUrl ?? await Auth.createPrivateTypeIndex();
-
-  //         await cookbook.save();
-  //         await cookbook.register(typeIndexUrl, Recipe);
-  //     });
-
-  //     await this.initializeRemoteCookbook(cookbook);
-  //     await this.reloadRecipes();
-  // }
-
   return (
     <>
       <Flex>
-        <Input
+        <input
           value={form?.title}
           onChange={(e) =>
             setForm((prev: any) => ({ ...prev, title: e.target.value }))
           }
         />
-        <Input
+        <input
           value={form?.link}
           onChange={(e) =>
             setForm((prev: any) => ({ ...prev, link: e.target.value }))
           }
         />
 
-        <Button
+        <button
           onClick={async () => {
-            const factory = await getFactory({
+            const factory = await BookmarkFactory.getInstance({
               baseURL: pod,
               containerUrl: pod + "bookmarks/",
               fetch: userSession?.fetch,
               webId: userSession?.info.webId ?? "",
-              // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl"
+              forClass:Bookmark.rdfsClasses[0]
             });
-
-            console.log(
-              "🚀 ~ file: Bookmarks.tsx:78 ~ onClick={ ~ factory.containerUrl:",
-              factory?.containerUrl
-            );
 
             const bookmark = await factory.create(form!);
 
-            // setForm({ title: "", link: "" });
+            setForm({ title: "", link: "" });
           }}
         >
           add
-        </Button>
+        </button>
       </Flex>
-      <Box>
-        <TableContainer>
-          <Table variant="striped">
-            <Thead>
-              <Tr>
-                <Th>Title</Th>
-                <Th>Link</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {bookmarks?.map((b, i) => (
-                <Tr key={i}>
-                  <Td>{b.title}</Td>
-                  <Td>
-                    <Link>{b.link}</Link>
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      </Box>
+      <div>
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bookmarks?.map((b, i) => (
+              <tr key={i}>
+                <td>{b.title}</td>
+                <td>
+                  <a>{b.link}</a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 };

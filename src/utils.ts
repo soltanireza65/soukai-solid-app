@@ -15,7 +15,7 @@ import {
     SolidTypeRegistration,
     bootSolidModels,
 } from "soukai-solid";
-import { Bookmark } from "@soukai-solid-data-modules/modules/Bookmarks";
+import { Bookmark, BookmarkFactory } from "@soukai-solid-data-modules/modules/Bookmarks";
 // import { TypeIndex } from "./soukai-solid-data-modules";
 import { createSolidDocument, fetchSolidDocument, solidDocumentExists, updateSolidDocument } from "@noeldemartin/solid-utils";
 import { v4 } from "uuid";
