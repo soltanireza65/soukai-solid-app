@@ -3,9 +3,6 @@ import { FieldType, TimestampField } from "soukai";
 import { defineSolidModelSchema } from "soukai-solid";
 import { ISoukaiDocumentBase } from "../shared/contracts";
 import { fetchContainerUrl, registerInTypeIndex, urlParentDirectory } from "@/utils";
-// import { fetchContainerUrl, registerInTypeIndex, urlParentDirectory } from "../shared/utils";
-
-
 
 export type ICreateBookmark = {
     title: string
@@ -36,17 +33,7 @@ export const BookmarkSchema = defineSolidModelSchema({
 export class Bookmark extends BookmarkSchema { }
 
 
-// interface GetFactoryArgs { fetch: any; containerUrl: string; baseURL: string; webId: string; typeIndexUrl?: string; }
-
-// export const getFactory = async (args: GetFactoryArgs) => {
-//     return await BookmarkFactory.getInstance({
-//         ...args,
-//         forClass: Bookmark.rdfsClasses[0],
-//     });
-// };
-
 interface GetInstanceArgs { forClass: string, baseURL: string, webId: string, typeIndexUrl?: string, fetch?: any }
-
 export class BookmarkFactory {
     private static instance: BookmarkFactory;
 
@@ -56,20 +43,14 @@ export class BookmarkFactory {
         if (!BookmarkFactory.instance) {
             let _containerUrl = ""
             if (args) {
-                console.log("🚀 ~ file: Bookmarks.ts:59 ~ BookmarkFactory ~ getInstance ~ args:")
-                
                 _containerUrl = await fetchContainerUrl(args) ?? ""
             }
-            // console.log("🚀 ~ file: Bookmarks.ts:60 ~ BookmarkFactory ~ getInstance ~ containerUrl:", containerUrl)
-            // console.log("🚀 ~ file: Bookmarks.ts:60 ~ BookmarkFactory ~ getInstance ~ _containerUrl:", _containerUrl)
             BookmarkFactory.instance = new BookmarkFactory(containerUrl ?? _containerUrl);
         }
         return BookmarkFactory.instance;
     }
 
     async getAll() {
-        
-        console.log("🚀 ~ file: Bookmarks.ts:69 ~ BookmarkFactory ~ getAll ~ this.containerUrl:", this.containerUrl)
         return await Bookmark.from(this.containerUrl).all();
     }
 
@@ -85,8 +66,7 @@ export class BookmarkFactory {
         await registerInTypeIndex({
             forClass: Bookmark.rdfsClasses[0],
             instanceContainer: instanceContainer ?? this.containerUrl,
-            typeIndexUrl:
-                "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
+            typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
         });
 
         return await bookmark.save(this.containerUrl);
@@ -94,18 +74,7 @@ export class BookmarkFactory {
 
     async update(id: string, payload: IBookmark) {
         const bookmark = await Bookmark.find(id);
-
-        // const instanceContainer = urlParentDirectory(bookmark?.url ?? "");
-
-        // await registerInTypeIndex({
-        //     forClass: Bookmark.rdfsClasses[0],
-        //     instanceContainer: instanceContainer ?? this.containerUrl,
-        //     typeIndexUrl:
-        //         "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
-        // });
-
         return await bookmark?.update(payload);
-
     }
 
     async remove(id: string) {
@@ -113,3 +82,4 @@ export class BookmarkFactory {
         return await bookmark?.delete();
     }
 }
+
