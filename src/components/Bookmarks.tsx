@@ -13,23 +13,39 @@ const Bookmarks: FC = () => {
   const [form, setForm] = useState({ title: "", link: "" });
   const [bookmarks, setBookmarks] = useState<(Bookmark & SolidModel)[]>([]);
 
-  const init = async () => {
-    pod = await getPodUrlAll(userSession?.info.webId ?? "", { fetch: userSession?.fetch, }).then((pods) => pods[0])
+  // const init = async () => {
+  //   pod = await getPodUrlAll(userSession?.info.webId ?? "", { fetch: userSession?.fetch, }).then((pods) => pods[0])
 
-    const factory = await BookmarkFactory.getInstance({
-      baseURL: pod,
-      containerUrl: pod + "bookmarks/",
-      fetch: userSession?.fetch,
-      webId: userSession?.info.webId ?? "",
-      forClass:Bookmark.rdfsClasses[0]
-    });
+  //   const factory = await BookmarkFactory.getInstance({
+  //     baseURL: pod,
+  //     // containerUrl: pod + "bookmarks/",
+  //     fetch: userSession?.fetch,
+  //     webId: userSession?.info.webId ?? "",
+  //     forClass:Bookmark.rdfsClasses[0]
+  //   });
 
-    const bookmarks = await factory.getAll();
-    setBookmarks(bookmarks);
-  };
+  //   const bookmarks = await factory.getAll();
+  //   setBookmarks(bookmarks);
+  // };
 
   useEffect(() => {
-    init().then(() => { });
+    (async () => {
+      pod = await getPodUrlAll(userSession?.info.webId ?? "", { fetch: userSession?.fetch, }).then((pods) => pods[0])
+
+      const factory = await BookmarkFactory.getInstance({
+        baseURL: pod,
+        // containerUrl: pod + "bookmarks/",
+        fetch: userSession?.fetch,
+        webId: userSession?.info.webId ?? "",
+        forClass: Bookmark.rdfsClasses[0]
+      },
+        pod + "bookmarks/"
+      );
+
+      const bookmarks = await factory.getAll();
+      setBookmarks(bookmarks);
+    })()
+    // init().then(() => { });
   }, [userSession]);
 
   return (
@@ -52,11 +68,13 @@ const Bookmarks: FC = () => {
           onClick={async () => {
             const factory = await BookmarkFactory.getInstance({
               baseURL: pod,
-              containerUrl: pod + "bookmarks/",
+              // containerUrl: pod + "bookmarks/",
               fetch: userSession?.fetch,
               webId: userSession?.info.webId ?? "",
-              forClass:Bookmark.rdfsClasses[0]
-            });
+              forClass: Bookmark.rdfsClasses[0]
+            },
+              pod + "bookmarks/"
+            );
 
             const bookmark = await factory.create(form!);
 

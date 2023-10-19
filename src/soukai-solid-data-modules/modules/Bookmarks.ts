@@ -6,6 +6,7 @@ import { fetchContainerUrl, registerInTypeIndex, urlParentDirectory } from "@/ut
 // import { fetchContainerUrl, registerInTypeIndex, urlParentDirectory } from "../shared/utils";
 
 
+
 export type ICreateBookmark = {
     title: string
     link: string
@@ -44,29 +45,31 @@ export class Bookmark extends BookmarkSchema { }
 //     });
 // };
 
+interface GetInstanceArgs { forClass: string, baseURL: string, webId: string, typeIndexUrl?: string, fetch?: any }
+
 export class BookmarkFactory {
     private static instance: BookmarkFactory;
 
     private constructor(private containerUrl: string) { }
 
-    public static async getInstance({
-        containerUrl, forClass, baseURL, webId, typeIndexUrl, fetch
-    }: {
-        containerUrl: string,
-        forClass: string,
-        baseURL: string,
-        webId: string,
-        typeIndexUrl?: string,
-        fetch?: any
-    }): Promise<BookmarkFactory> {
+    public static async getInstance(args?: GetInstanceArgs, containerUrl?: string): Promise<BookmarkFactory> {
         if (!BookmarkFactory.instance) {
-            const _containerUrl = await fetchContainerUrl({ fetch, forClass, baseURL, webId, typeIndexUrl });
+            let _containerUrl = ""
+            if (args) {
+                console.log("🚀 ~ file: Bookmarks.ts:59 ~ BookmarkFactory ~ getInstance ~ args:")
+                
+                _containerUrl = await fetchContainerUrl(args) ?? ""
+            }
+            // console.log("🚀 ~ file: Bookmarks.ts:60 ~ BookmarkFactory ~ getInstance ~ containerUrl:", containerUrl)
+            // console.log("🚀 ~ file: Bookmarks.ts:60 ~ BookmarkFactory ~ getInstance ~ _containerUrl:", _containerUrl)
             BookmarkFactory.instance = new BookmarkFactory(containerUrl ?? _containerUrl);
         }
         return BookmarkFactory.instance;
     }
 
     async getAll() {
+        
+        console.log("🚀 ~ file: Bookmarks.ts:69 ~ BookmarkFactory ~ getAll ~ this.containerUrl:", this.containerUrl)
         return await Bookmark.from(this.containerUrl).all();
     }
 
@@ -76,31 +79,37 @@ export class BookmarkFactory {
 
     async create(payload: ICreateBookmark) {
         const bookmark = new Bookmark(payload);
-        return await await bookmark.save(this.containerUrl);
-    }
 
-    async update(id: string, payload: IBookmark) {
-        // const bookmark = await Bookmark.find(id);
-        // return await await bookmark?.update(payload);
-        const bookmark = new Bookmark(payload);
+        const instanceContainer = urlParentDirectory(bookmark?.url ?? "");
 
-        const bookmarkObj = await bookmark.save(this.containerUrl);
-
-        const instanceContainer = urlParentDirectory(bookmarkObj.url);
-
-        registerInTypeIndex({
+        await registerInTypeIndex({
             forClass: Bookmark.rdfsClasses[0],
             instanceContainer: instanceContainer ?? this.containerUrl,
             typeIndexUrl:
                 "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
         });
 
-        return bookmarkObj;
+        return await bookmark.save(this.containerUrl);
+    }
+
+    async update(id: string, payload: IBookmark) {
+        const bookmark = await Bookmark.find(id);
+
+        // const instanceContainer = urlParentDirectory(bookmark?.url ?? "");
+
+        // await registerInTypeIndex({
+        //     forClass: Bookmark.rdfsClasses[0],
+        //     instanceContainer: instanceContainer ?? this.containerUrl,
+        //     typeIndexUrl:
+        //         "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
+        // });
+
+        return await bookmark?.update(payload);
 
     }
 
     async remove(id: string) {
         const bookmark = await Bookmark.find(id);
-        return await await bookmark?.delete();
+        return await bookmark?.delete();
     }
 }

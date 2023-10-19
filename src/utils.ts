@@ -73,9 +73,9 @@ type FetchContainrURLArgs = {
 
 export const fetchContainerUrl = async (args: FetchContainrURLArgs) => {
     try {
-        // const typeIndexUrl = args.typeIndexUrl ?? "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl";
         const typeIndexUrl = args.typeIndexUrl ?? await createPrivateTypeIndex(args.baseURL, args.webId, `${args.baseURL}profile/card`, fetch);
 
+        console.log("🚀 ~ file: utils.ts:79 ~ fetchContainerUrl ~ typeIndexUrl:", typeIndexUrl)
         const document = await fetchSolidDocument(typeIndexUrl, args.fetch);
         const containerType = document.statements(undefined, "rdf:type", "solid:TypeRegistration")
             .find((statement) =>
