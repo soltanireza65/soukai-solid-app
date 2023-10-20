@@ -44,8 +44,18 @@ export class BookmarkFactory {
             let _containerUrl = ""
             if (args) {
                 _containerUrl = await fetchContainerUrl(args) ?? ""
+                console.log("🚀 ~ file: Bookmarks.ts:47 ~ BookmarkFactory ~ getInstance ~ _containerUrl:", _containerUrl)
             }
             BookmarkFactory.instance = new BookmarkFactory(containerUrl ?? _containerUrl);
+            
+            // if (_containerUrl === "" && containerUrl) {
+            //     // alert("registerInTypeIndex")
+            //     await registerInTypeIndex({
+            //         forClass: Bookmark.rdfsClasses[0],
+            //         instanceContainer: containerUrl,
+            //         typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
+            //     });
+            // }
         }
         return BookmarkFactory.instance;
     }
@@ -61,13 +71,13 @@ export class BookmarkFactory {
     async create(payload: ICreateBookmark) {
         const bookmark = new Bookmark(payload);
 
-        const instanceContainer = urlParentDirectory(bookmark?.url ?? "");
+        // const instanceContainer = urlParentDirectory(bookmark?.url ?? "");
 
-        await registerInTypeIndex({
-            forClass: Bookmark.rdfsClasses[0],
-            instanceContainer: instanceContainer ?? this.containerUrl,
-            typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
-        });
+        // await registerInTypeIndex({
+        //     forClass: Bookmark.rdfsClasses[0],
+        //     instanceContainer: instanceContainer ?? this.containerUrl,
+        //     typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
+        // });
 
         return await bookmark.save(this.containerUrl);
     }

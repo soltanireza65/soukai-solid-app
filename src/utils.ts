@@ -71,15 +71,22 @@ type FetchContainrURLArgs = {
     webId: string,
 }
 
+
 export const fetchContainerUrl = async (args: FetchContainrURLArgs) => {
     try {
+        // const typeIndexUrl = args.typeIndexUrl ?? "";
         const typeIndexUrl = args.typeIndexUrl ?? await createPrivateTypeIndex(args.baseURL, args.webId, `${args.baseURL}profile/card`, fetch);
 
-        console.log("🚀 ~ file: utils.ts:79 ~ fetchContainerUrl ~ typeIndexUrl:", typeIndexUrl)
         const document = await fetchSolidDocument(typeIndexUrl, args.fetch);
-        const containerType = document.statements(undefined, "rdf:type", "solid:TypeRegistration")
+        console.log("🚀 ~ file: utils.ts:80 ~ fetchContainerUrl ~ document:", document)
+
+        const containerType = document.statements(undefined, "rdf:type", "solid:TypeRegistration").map(x => {
+            console.log("🚀 ~ file: utils.ts:86 ~ fetchContainerUrl ~ containerType:", document.statement(containerType?.subject.value, "solid:instanceContainer"))
+            return x
+        })
             .find((statement) =>
-                document.contains(statement.subject.value, "solid:forClass", args.forClass) // "http://www.w3.org/2002/01/bookmark#Bookmark"
+                document.contains(statement.subject.value, "solid:forClass", "https://schema.org/Movie")
+                // document.contains(statement.subject.value, "solid:forClass", args.forClass)
                 &&
                 document.contains(statement.subject.value, "solid:instanceContainer")
             );
@@ -96,8 +103,10 @@ export const registerInTypeIndex = async (args: { instanceContainer: string; for
         instanceContainer: args.instanceContainer,
     });
 
+    if (typeRegistration.url) {
+        return
+    }
     typeRegistration.mintUrl(args.typeIndexUrl, true, v4());
-
     await typeRegistration.withEngine(getEngine()!, () =>
         typeRegistration.save(urlParentDirectory(args.typeIndexUrl) ?? "")
     );
