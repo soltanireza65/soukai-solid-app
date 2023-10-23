@@ -9,6 +9,7 @@ import {
 import { bootModels, getEngine, setEngine } from "soukai";
 import {
     Fetch,
+    SolidContainer,
     SolidEngine,
     SolidTypeIndex,
     // SolidTypeIndex,
@@ -74,8 +75,9 @@ type FetchContainrURLArgs = {
 
 export const fetchContainerUrl = async (args: FetchContainrURLArgs) => {
     try {
-        // const typeIndexUrl = args.typeIndexUrl ?? "";
-        const typeIndexUrl = args.typeIndexUrl ?? await createPrivateTypeIndex(args.baseURL, args.webId, `${args.baseURL}profile/card`, fetch);
+        const typeIndexUrl = args.typeIndexUrl! // ?? await createPrivateTypeIndex(args.baseURL, args.webId, `${args.baseURL}profile/card`, fetch);
+
+        const containerUrl = (await SolidContainer.fromTypeIndex(args.typeIndexUrl!, Bookmark))?.url
 
         const document = await fetchSolidDocument(typeIndexUrl, args.fetch);
         console.log("🚀 ~ file: utils.ts:80 ~ fetchContainerUrl ~ document:", document)
@@ -85,8 +87,8 @@ export const fetchContainerUrl = async (args: FetchContainrURLArgs) => {
             return x
         })
             .find((statement) =>
-                document.contains(statement.subject.value, "solid:forClass", "https://schema.org/Movie")
-                // document.contains(statement.subject.value, "solid:forClass", args.forClass)
+                // document.contains(statement.subject.value, "solid:forClass", "https://schema.org/Movie")
+                document.contains(statement.subject.value, "solid:forClass", args.forClass)
                 &&
                 document.contains(statement.subject.value, "solid:instanceContainer")
             );
@@ -96,6 +98,21 @@ export const fetchContainerUrl = async (args: FetchContainrURLArgs) => {
     }
 };
 
+
+// export const findOrCreateTasksContainer = async (session: any): Promise<SolidContainer> => {
+export const findOrCreateTasksContainer = async (session: any) => {
+
+    // const name = 'Bookmarks';
+    // const url = "https://reza-soltani.solidcommunity.net/bookmarks";
+    // const typeIndex = await Solid.findOrCreatePrivateTypeIndex();
+    const typeIndexUrl = "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl";
+    // const containers = await SolidContainer.withEngine(getEngine()).fromTypeIndex(typeIndexUrl, Bookmark);
+    // return (
+    //     containers.find((container) => container.url === url)
+    //     ??
+    //     (await Solid.createPrivateContainer({ url, name, registerFor: SolidTask, reuseExisting: true }))
+    // );
+}
 
 export const registerInTypeIndex = async (args: { instanceContainer: string; forClass: string; typeIndexUrl: string; }) => {
     const typeRegistration = new SolidTypeRegistration({

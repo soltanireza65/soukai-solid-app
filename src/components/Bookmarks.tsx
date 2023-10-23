@@ -30,6 +30,7 @@ const Bookmarks: FC = () => {
 
   useEffect(() => {
     (async () => {
+      if (!userSession) return
       pod = await getPodUrlAll(userSession?.info.webId ?? "", { fetch: userSession?.fetch, }).then((pods) => pods[0])
 
       const factory = await BookmarkFactory.getInstance({
@@ -37,13 +38,14 @@ const Bookmarks: FC = () => {
         // containerUrl: pod + "bookmarks/",
         fetch: userSession?.fetch,
         webId: userSession?.info.webId ?? "",
+        typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
         forClass: Bookmark.rdfsClasses[0]
       },
         pod + "bookmarks/"
       );
 
-      const bookmarks = await factory.getAll();
-      setBookmarks(bookmarks);
+      // const bookmarks = await factory.getAll();
+      // setBookmarks(bookmarks);
     })()
     // init().then(() => { });
   }, [userSession]);
@@ -66,19 +68,20 @@ const Bookmarks: FC = () => {
 
         <button
           onClick={async () => {
-            const factory = await BookmarkFactory.getInstance({
-              baseURL: pod,
-              // containerUrl: pod + "bookmarks/",
-              fetch: userSession?.fetch,
-              webId: userSession?.info.webId ?? "",
-              forClass: Bookmark.rdfsClasses[0]
-            },
-              pod + "bookmarks/"
-            );
+            // const factory = await BookmarkFactory.getInstance({
+            //   baseURL: pod,
+            //   // containerUrl: pod + "bookmarks/",
+            //   fetch: userSession?.fetch,
+            //   webId: userSession?.info.webId ?? "",
+            //   typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
+            //   forClass: Bookmark.rdfsClasses[0]
+            // },
+            //   // pod + "bookmarks/"
+            // );
 
-            const bookmark = await factory.create(form!);
+            // const bookmark = await factory.create(form!);
 
-            setForm({ title: "", link: "" });
+            // setForm({ title: "", link: "" });
           }}
         >
           add
