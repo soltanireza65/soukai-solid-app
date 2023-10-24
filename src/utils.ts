@@ -6,6 +6,7 @@ import {
     login,
     logout,
 } from "@inrupt/solid-client-authn-browser";
+import { Bookmark } from "@soukai-solid-data-modules/modules/Bookmarks";
 import { bootModels, getEngine, setEngine } from "soukai";
 import {
     Fetch,
@@ -16,9 +17,8 @@ import {
     SolidTypeRegistration,
     bootSolidModels,
 } from "soukai-solid";
-import { Bookmark, BookmarkFactory } from "@soukai-solid-data-modules/modules/Bookmarks";
 // import { TypeIndex } from "./soukai-solid-data-modules";
-import { createSolidDocument, fetchSolidDocument, solidDocumentExists, updateSolidDocument } from "@noeldemartin/solid-utils";
+import { createSolidDocument, fetchSolidDocument, updateSolidDocument } from "@noeldemartin/solid-utils";
 import { v4 } from "uuid";
 // import SolidTypeIndex from "./soukai-solid-data-modules/modules/SolidTypeIndex";
 
@@ -67,14 +67,14 @@ export function bootSoukai(fetch?: Fetch) {
 type FetchContainrURLArgs = {
     typeIndexUrl?: string;
     forClass: string,
-    fetch?: any
+    fetch?: Fetch,
     baseURL: string,
     webId: string,
 }
 
 export async function getTypeIndexFromPofile({ webId, fetch, typePredicate }: {
     webId: string,
-    fetch: any,
+    fetch?: Fetch,
     typePredicate: "solid:publicTypeIndex" | "solid:privateTypeIndex"
 }) {
     const profile = await fetchSolidDocument(webId, fetch);
@@ -170,26 +170,27 @@ type TypeIndexType = 'public' | 'private';
 
 
 
-async function mintTypeIndexUrl(baseURL: string, type: TypeIndexType, fetch?: Fetch): Promise<string> {
-    fetch = fetch ?? window.fetch.bind(fetch);
+// async function mintTypeIndexUrl(baseURL: string, type: TypeIndexType, fetch?: Fetch): Promise<string> {
+//     fetch = fetch ?? window.fetch.bind(fetch);
 
+//     const typeIndexUrl = `${baseURL}settings/${type}TypeIndex.ttl`;
+
+//     return await solidDocumentExists(typeIndexUrl, fetch)
+//         ? `${baseURL}settings/${type}TypeIndex.ttl`
+//         : typeIndexUrl;
+// }
+
+
+
+export async function createTypeIndex(webId: string, type: TypeIndexType, fetch?: Fetch) {
+
+    const baseURL = webId.split("profile")[0]
+
+    // fetch = fetch ?? window.fetch.bind(fetch);
+
+    // const typeIndexUrl = await mintTypeIndexUrl(baseURL, type, fetch);
     const typeIndexUrl = `${baseURL}settings/${type}TypeIndex.ttl`;
 
-    return await solidDocumentExists(typeIndexUrl, fetch)
-        ? `${baseURL}settings/${type}TypeIndex.ttl`
-        : typeIndexUrl;
-}
-
-
-
-export async function createTypeIndex(baseURL: string, webId: string, writableProfileUrl: string, type: TypeIndexType, fetch?: Fetch) {
-    if (writableProfileUrl === null) {
-        throw new Error('Can\'t create type index without a writable profile document');
-    }
-
-    fetch = fetch ?? window.fetch.bind(fetch);
-
-    const typeIndexUrl = await mintTypeIndexUrl(baseURL, type, fetch);
     const typeIndexBody = type === 'public'
         ? '<> a <http://www.w3.org/ns/solid/terms#TypeIndex> .'
         : `
@@ -205,7 +206,7 @@ export async function createTypeIndex(baseURL: string, webId: string, writablePr
 
     await Promise.all([
         createSolidDocument(typeIndexUrl, typeIndexBody, fetch),
-        updateSolidDocument(writableProfileUrl, profileUpdateBody, fetch), // https://reza-soltani.solidcommunity.net/profile/card
+        updateSolidDocument(webId, profileUpdateBody, fetch), // https://reza-soltani.solidcommunity.net/profile/card
     ]);
 
     if (type === 'public') {
@@ -215,13 +216,13 @@ export async function createTypeIndex(baseURL: string, webId: string, writablePr
     return typeIndexUrl;
 }
 
-export async function createPublicTypeIndex(baseURL: string, webId: string, writableProfileUrl: string, fetch?: Fetch): Promise<string> {
-    return createTypeIndex(baseURL, webId, writableProfileUrl, 'public', fetch);
-}
+// export async function createPublicTypeIndex(baseURL: string, webId: string, writableProfileUrl: string, fetch?: Fetch): Promise<string> {
+//     return createTypeIndex(baseURL, webId, writableProfileUrl, 'public', fetch);
+// }
 
-export async function createPrivateTypeIndex(baseURL: string, webId: string, writableProfileUrl: string, fetch?: Fetch): Promise<string> {
-    return createTypeIndex(baseURL, webId, writableProfileUrl, 'private', fetch);
-}
+// export async function createPrivateTypeIndex(baseURL: string, webId: string, writableProfileUrl: string, fetch?: Fetch): Promise<string> {
+//     return createTypeIndex(baseURL, webId, writableProfileUrl, 'private', fetch);
+// }
 
 
 async function findRegistrations(

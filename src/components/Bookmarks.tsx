@@ -1,12 +1,10 @@
 import { Flex } from "@chakra-ui/react";
-import { getPodUrlAll } from "@inrupt/solid-client";
 import {
   Bookmark, BookmarkFactory
 } from "@soukai-solid-data-modules/modules/Bookmarks";
 import { FC, useEffect, useState } from "react";
 import { SolidModel } from "soukai-solid";
 import { useUserSession } from "../atoms/userSession.atom";
-import { getTypeIndexFromPofile } from "@/utils";
 
 const Bookmarks: FC = () => {
   let pod: string = "";
@@ -18,30 +16,19 @@ const Bookmarks: FC = () => {
     (async () => {
       if (!userSession) return
 
-      pod = await getPodUrlAll(userSession?.info.webId ?? "", { fetch: userSession?.fetch, }).then((pods) => pods[0])
-
-      const typeIndexUrl = await getTypeIndexFromPofile({
-        webId: userSession?.info.webId ?? "",
-        fetch: userSession?.fetch,
-        typePredicate: "solid:privateTypeIndex"
-      })
-
-      console.log("🚀 ~ file: Bookmarks.tsx:20 ~ typeIndexUrl:", typeIndexUrl)
-
-
       const factory = await BookmarkFactory.getInstance({
-        baseURL: pod,
-        // containerUrl: pod + "bookmarks/",
-        fetch: userSession?.fetch,
         webId: userSession?.info.webId ?? "",
-        typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
-        forClass: Bookmark.rdfsClasses[0]
+        fetch: userSession?.fetch,
+        // baseURL: pod,
+        // containerUrl: pod + "bookmarks/",
+        // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
+        // forClass: Bookmark.rdfsClasses[0]
       },
         pod + "bookmarks/"
       );
 
-      // const bookmarks = await factory.getAll();
-      // setBookmarks(bookmarks);
+      const bookmarks = await factory.getAll();
+      setBookmarks(bookmarks);
     })()
   }, [userSession]);
 
