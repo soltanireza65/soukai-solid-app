@@ -6,6 +6,7 @@ import {
 import { FC, useEffect, useState } from "react";
 import { SolidModel } from "soukai-solid";
 import { useUserSession } from "../atoms/userSession.atom";
+import { getTypeIndexFromPofile } from "@/utils";
 
 const Bookmarks: FC = () => {
   let pod: string = "";
@@ -13,25 +14,20 @@ const Bookmarks: FC = () => {
   const [form, setForm] = useState({ title: "", link: "" });
   const [bookmarks, setBookmarks] = useState<(Bookmark & SolidModel)[]>([]);
 
-  // const init = async () => {
-  //   pod = await getPodUrlAll(userSession?.info.webId ?? "", { fetch: userSession?.fetch, }).then((pods) => pods[0])
-
-  //   const factory = await BookmarkFactory.getInstance({
-  //     baseURL: pod,
-  //     // containerUrl: pod + "bookmarks/",
-  //     fetch: userSession?.fetch,
-  //     webId: userSession?.info.webId ?? "",
-  //     forClass:Bookmark.rdfsClasses[0]
-  //   });
-
-  //   const bookmarks = await factory.getAll();
-  //   setBookmarks(bookmarks);
-  // };
-
   useEffect(() => {
     (async () => {
       if (!userSession) return
+
       pod = await getPodUrlAll(userSession?.info.webId ?? "", { fetch: userSession?.fetch, }).then((pods) => pods[0])
+
+      const typeIndexUrl = await getTypeIndexFromPofile({
+        webId: userSession?.info.webId ?? "",
+        fetch: userSession?.fetch,
+        typePredicate: "solid:privateTypeIndex"
+      })
+
+      console.log("🚀 ~ file: Bookmarks.tsx:20 ~ typeIndexUrl:", typeIndexUrl)
+
 
       const factory = await BookmarkFactory.getInstance({
         baseURL: pod,
@@ -47,7 +43,6 @@ const Bookmarks: FC = () => {
       // const bookmarks = await factory.getAll();
       // setBookmarks(bookmarks);
     })()
-    // init().then(() => { });
   }, [userSession]);
 
   return (

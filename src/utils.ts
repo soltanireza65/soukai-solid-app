@@ -72,6 +72,24 @@ type FetchContainrURLArgs = {
     webId: string,
 }
 
+export async function getTypeIndexFromPofile({ webId, fetch, typePredicate }: {
+    webId: string,
+    fetch: any,
+    typePredicate: "solid:publicTypeIndex" | "solid:privateTypeIndex"
+}) {
+    const profile = await fetchSolidDocument(webId, fetch);
+
+    const containerQuad = profile.statements(undefined, 'rdf:type', 'http://schema.org/Person')
+        .find((statement) => profile.contains(statement.subject.value, typePredicate));
+
+    return profile.statement(containerQuad?.subject.value, typePredicate)?.object.value
+
+    // return containerQuad
+    //     ?
+    //     profile.statement(containerQuad.subject.value, typePredicate)?.object.value ?? null
+    //     :
+    //     null;
+}
 
 export const fetchContainerUrl = async (args: FetchContainrURLArgs) => {
     try {

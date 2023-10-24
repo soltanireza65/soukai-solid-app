@@ -83,7 +83,6 @@ export class BookmarkFactory {
             } catch (error: any) {
                 console.log(error.message);
             }
-
         }
         return BookmarkFactory.instance;
     }
