@@ -106,4 +106,3 @@ export class BookmarkFactory {
         return await bookmark?.delete();
     }
 }
-
