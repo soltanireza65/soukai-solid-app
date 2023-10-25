@@ -3,7 +3,6 @@ import { createTypeIndex, getTypeIndexFromPofile, registerInTypeIndex } from "@/
 import { FieldType, TimestampField } from "soukai";
 import { Fetch, SolidContainer, defineSolidModelSchema } from "soukai-solid";
 import { ISoukaiDocumentBase } from "../shared/contracts";
-import { replace } from "lodash";
 
 export type ICreateBookmark = {
     title: string
