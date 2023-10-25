@@ -19,12 +19,13 @@ const Bookmarks: FC = () => {
       const factory = await BookmarkFactory.getInstance({
         webId: userSession?.info.webId ?? "",
         fetch: userSession?.fetch,
+        typePredicate: "solid:privateTypeIndex"
         // baseURL: pod,
         // containerUrl: pod + "bookmarks/",
         // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
         // forClass: Bookmark.rdfsClasses[0]
       },
-        pod + "bookmarks/"
+        // "bookmarks/"
       );
 
       const bookmarks = await factory.getAll();

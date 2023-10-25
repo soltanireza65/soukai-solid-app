@@ -261,3 +261,87 @@ export async function findInstanceRegistrations(
 ): Promise<string[]> {
     return findRegistrations(typeIndexUrl, type, 'solid:instance', fetch);
 }
+
+// =====================
+
+
+// type FetchContainrURLArgs = {
+//     typeIndexUrl?: string;
+//     forClass: string,
+//     fetch?: any
+//     baseURL: string,
+//     webId: string,
+// }
+
+// export const fetchContainerUrl = async (args: FetchContainrURLArgs) => {
+//     try {
+//         const typeIndexUrl = args.typeIndexUrl ?? await createPrivateTypeIndex(args.baseURL, args.webId, `${args.baseURL}profile/card`, fetch);
+
+//         const document = await fetchSolidDocument(typeIndexUrl, args.fetch);
+//         const containerType = document.statements(undefined, "rdf:type", "solid:TypeRegistration")
+//             .find((statement) =>
+//                 document.contains(statement.subject.value, "solid:forClass", args.forClass)
+//                 &&
+//                 document.contains(statement.subject.value, "solid:instanceContainer")
+//             );
+//         return containerType ? document.statement(containerType.subject.value, "solid:instanceContainer")?.object.value ?? null : null;
+//     } catch (error) {
+//         return null;
+//     }
+// };
+
+
+// async function mintTypeIndexUrl(baseURL: string, type: TypeIndexType, fetch?: Fetch): Promise<string> {
+//     fetch = fetch ?? window.fetch.bind(fetch);
+
+//     const typeIndexUrl = `${baseURL}settings/${type}TypeIndex.ttl`;
+
+//     return await solidDocumentExists(typeIndexUrl, fetch)
+//         ? `${baseURL}settings/${type}TypeIndex.ttl`
+//         : typeIndexUrl;
+// }
+
+
+
+// export async function createTypeIndex(baseURL: string, webId: string, writableProfileUrl: string, type: TypeIndexType, fetch?: Fetch) {
+//     if (writableProfileUrl === null) {
+//         throw new Error('Can\'t create type index without a writable profile document');
+//     }
+
+//     fetch = fetch ?? window.fetch.bind(fetch);
+
+//     const typeIndexUrl = await mintTypeIndexUrl(baseURL, type, fetch);
+//     const typeIndexBody = type === 'public'
+//         ? '<> a <http://www.w3.org/ns/solid/terms#TypeIndex> .'
+//         : `
+//             <> a
+//                 <http://www.w3.org/ns/solid/terms#TypeIndex>,
+//                 <http://www.w3.org/ns/solid/terms#UnlistedDocument> .
+//         `;
+//     const profileUpdateBody = `
+//         INSERT DATA {
+//             <${webId}> <http://www.w3.org/ns/solid/terms#${type}TypeIndex> <${typeIndexUrl}> .
+//         }
+//     `;
+
+//     await Promise.all([
+//         createSolidDocument(typeIndexUrl, typeIndexBody, fetch),
+//         updateSolidDocument(writableProfileUrl, profileUpdateBody, fetch), // https://reza-soltani.solidcommunity.net/profile/card
+//     ]);
+
+//     if (type === 'public') {
+//         // TODO Implement updating ACLs for the listing itself to public
+//     }
+
+//     return typeIndexUrl;
+// }
+
+// export async function createPublicTypeIndex(baseURL: string, webId: string, writableProfileUrl: string, fetch?: Fetch): Promise<string> {
+//     return createTypeIndex(baseURL, webId, writableProfileUrl, 'public', fetch);
+// }
+
+// export async function createPrivateTypeIndex(baseURL: string, webId: string, writableProfileUrl: string, fetch?: Fetch): Promise<string> {
+//     return createTypeIndex(baseURL, webId, writableProfileUrl, 'private', fetch);
+// }
+
+
