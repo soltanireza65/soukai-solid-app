@@ -14,25 +14,25 @@ const Bookmarks: FC = () => {
   const [bookmarks, setBookmarks] = useState<(Bookmark & SolidModel)[]>([]);
 
   useEffect(() => {
-    // (async () => {
-    //   if (!userSession) return
-    //   // console.log("🚀 ~ file: Bookmarks.tsx:19 ~ userSession:")
+    (async () => {
+      if (!userSession) return
+      // console.log("🚀 ~ file: Bookmarks.tsx:19 ~ userSession:")
 
-    //   const factory = await BookmarkFactory.getInstance({
-    //     webId: userSession?.info.webId ?? "",
-    //     fetch: userSession?.fetch,
-    //     typePredicate: "solid:privateTypeIndex"
-    //     // baseURL: pod,
-    //     // containerUrl: pod + "bookmarks/",
-    //     // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
-    //     // forClass: Bookmark.rdfsClasses[0]
-    //   },
-    //     // "bookmarks/"
-    //   );
+      const factory = await BookmarkFactory.getInstance({
+        webId: userSession?.info.webId ?? "",
+        fetch: userSession?.fetch,
+        typePredicate: "solid:privateTypeIndex"
+        // baseURL: pod,
+        // containerUrl: pod + "bookmarks/",
+        // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
+        // forClass: Bookmark.rdfsClasses[0]
+      },
+        // "bookmarks/"
+      );
 
-    //   const bookmarks = await factory.getAll();
-    //   setBookmarks(bookmarks);
-    // })()
+      const bookmarks = await factory.getAll();
+      setBookmarks(bookmarks);
+    })()
   }, []);
 
   return (
@@ -53,25 +53,25 @@ const Bookmarks: FC = () => {
 
         <button
           onClick={async () => {
-            // const factory = await BookmarkFactory.getInstance({
-            //   webId: userSession?.info.webId ?? "",
-            //   fetch: userSession?.fetch,
-            //   typePredicate: "solid:privateTypeIndex"
-            //   // baseURL: pod,
-            //   // containerUrl: pod + "bookmarks/",
-            //   // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
-            //   // forClass: Bookmark.rdfsClasses[0]
-            // },
-            //   // "bookmarks/"
-            // );
+            const factory = await BookmarkFactory.getInstance({
+              webId: userSession?.info.webId ?? "",
+              fetch: userSession?.fetch,
+              typePredicate: "solid:privateTypeIndex"
+              // baseURL: pod,
+              // containerUrl: pod + "bookmarks/",
+              // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
+              // forClass: Bookmark.rdfsClasses[0]
+            },
+              // "bookmarks/"
+            );
 
-            // const bookmark = await factory.create(form!);
+            const bookmark = await factory.create(form!);
 
-            await registerInTypeIndex({
-              forClass: Bookmark.rdfsClasses[0],
-              instanceContainer: 'https://solid-dm.solidcommunity.net/bookmarks/',
-              typeIndexUrl: 'https://solid-dm.solidcommunity.net/settings/privateTypeIndex.ttl',
-            });
+            // await registerInTypeIndex({
+            //   forClass: Bookmark.rdfsClasses[0],
+            //   instanceContainer: 'https://solid-dm.solidcommunity.net/bookmarks/',
+            //   typeIndexUrl: 'https://solid-dm.solidcommunity.net/settings/privateTypeIndex.ttl',
+            // });
 
             setForm({ title: "", link: "" });
           }}
@@ -104,3 +104,14 @@ const Bookmarks: FC = () => {
 };
 
 export default Bookmarks;
+
+
+
+const func = async () => {
+  // await new Promise(resolve => setTimeout(resolve, 2000));
+  await fetch('https://jsonplaceholder.typicode.com/todos/1')
+  // .then(response => response.json())
+  // .then(json => console.log(json))
+  console.log("clicked");
+
+}

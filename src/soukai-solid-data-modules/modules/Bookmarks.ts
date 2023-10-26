@@ -53,11 +53,11 @@ export class BookmarkFactory {
 
                 containerUrl = `${baseURL}${containerUrl ?? "bookmarks/"}`.replace("//", "/") // normalize url
 
-                await registerInTypeIndex({
-                    forClass: Bookmark.rdfsClasses[0],
-                    instanceContainer: containerUrl,
-                    typeIndexUrl: 'https://solid-dm.solidcommunity.net/settings/privateTypeIndex.ttl',
-                });
+                // await registerInTypeIndex({
+                //     forClass: Bookmark.rdfsClasses[0],
+                //     instanceContainer: containerUrl,
+                //     typeIndexUrl: 'https://solid-dm.solidcommunity.net/settings/privateTypeIndex.ttl',
+                // });
 
                 let _containerUrl = ""
 
@@ -70,6 +70,7 @@ export class BookmarkFactory {
                 if (typeIndexUrl) {
                     const _container = await SolidContainer.fromTypeIndex(typeIndexUrl, Bookmark)
                     if (!_container) {
+
                         _containerUrl = containerUrl
 
                         await registerInTypeIndex({

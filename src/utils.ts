@@ -18,10 +18,13 @@ import {
     bootSolidModels,
 } from "soukai-solid";
 // import { TypeIndex } from "./soukai-solid-data-modules";
-import { createSolidDocument, fetchSolidDocument, updateSolidDocument } from "@noeldemartin/solid-utils";
+import {
+    createSolidDocument,
+    fetchSolidDocument,
+    updateSolidDocument,
+} from "@noeldemartin/solid-utils";
 import { v4 } from "uuid";
 // import SolidTypeIndex from "./soukai-solid-data-modules/modules/SolidTypeIndex";
-
 
 export async function doLogin() {
     await login({
@@ -63,26 +66,33 @@ export function bootSoukai(fetch?: Fetch) {
     setEngine(new SolidEngine(fetch));
 }
 
-
 type FetchContainrURLArgs = {
     typeIndexUrl?: string;
-    forClass: string,
-    fetch?: Fetch,
-    baseURL: string,
-    webId: string,
-}
+    forClass: string;
+    fetch?: Fetch;
+    baseURL: string;
+    webId: string;
+};
 
-export async function getTypeIndexFromPofile({ webId, fetch, typePredicate }: {
-    webId: string,
-    fetch?: Fetch,
-    typePredicate: "solid:publicTypeIndex" | "solid:privateTypeIndex"
+export async function getTypeIndexFromPofile({
+    webId,
+    fetch,
+    typePredicate,
+}: {
+    webId: string;
+    fetch?: Fetch;
+    typePredicate: "solid:publicTypeIndex" | "solid:privateTypeIndex";
 }) {
     const profile = await fetchSolidDocument(webId, fetch);
 
-    const containerQuad = profile.statements(undefined, 'rdf:type', 'http://schema.org/Person')
-        .find((statement) => profile.contains(statement.subject.value, typePredicate));
+    const containerQuad = profile
+        .statements(undefined, "rdf:type", "http://schema.org/Person")
+        .find((statement) =>
+            profile.contains(statement.subject.value, typePredicate)
+        );
 
-    return profile.statement(containerQuad?.subject.value, typePredicate)?.object.value
+    return profile.statement(containerQuad?.subject.value, typePredicate)?.object
+        .value;
 
     // return containerQuad
     //     ?
@@ -93,130 +103,73 @@ export async function getTypeIndexFromPofile({ webId, fetch, typePredicate }: {
 
 export const fetchContainerUrl = async (args: FetchContainrURLArgs) => {
     try {
-        const typeIndexUrl = args.typeIndexUrl! // ?? await createPrivateTypeIndex(args.baseURL, args.webId, `${args.baseURL}profile/card`, fetch);
+        const typeIndexUrl = args.typeIndexUrl!; // ?? await createPrivateTypeIndex(args.baseURL, args.webId, `${args.baseURL}profile/card`, fetch);
 
-        const containerUrl = (await SolidContainer.fromTypeIndex(args.typeIndexUrl!, Bookmark))?.url
+        const containerUrl = (
+            await SolidContainer.fromTypeIndex(args.typeIndexUrl!, Bookmark)
+        )?.url;
 
         const document = await fetchSolidDocument(typeIndexUrl, args.fetch);
-        console.log("🚀 ~ file: utils.ts:80 ~ fetchContainerUrl ~ document:", document)
+        console.log(
+            "🚀 ~ file: utils.ts:80 ~ fetchContainerUrl ~ document:",
+            document
+        );
 
-        const containerType = document.statements(undefined, "rdf:type", "solid:TypeRegistration").map(x => {
-            console.log("🚀 ~ file: utils.ts:86 ~ fetchContainerUrl ~ containerType:", document.statement(containerType?.subject.value, "solid:instanceContainer"))
-            return x
-        })
-            .find((statement) =>
-                // document.contains(statement.subject.value, "solid:forClass", "https://schema.org/Movie")
-                document.contains(statement.subject.value, "solid:forClass", args.forClass)
-                &&
-                document.contains(statement.subject.value, "solid:instanceContainer")
+        const containerType = document
+            .statements(undefined, "rdf:type", "solid:TypeRegistration")
+            .map((x) => {
+                console.log(
+                    "🚀 ~ file: utils.ts:86 ~ fetchContainerUrl ~ containerType:",
+                    document.statement(
+                        containerType?.subject.value,
+                        "solid:instanceContainer"
+                    )
+                );
+                return x;
+            })
+            .find(
+                (statement) =>
+                    // document.contains(statement.subject.value, "solid:forClass", "https://schema.org/Movie")
+                    document.contains(
+                        statement.subject.value,
+                        "solid:forClass",
+                        args.forClass
+                    ) &&
+                    document.contains(statement.subject.value, "solid:instanceContainer")
             );
-        return containerType ? document.statement(containerType.subject.value, "solid:instanceContainer")?.object.value ?? null : null;
+        return containerType
+            ? document.statement(
+                containerType.subject.value,
+                "solid:instanceContainer"
+            )?.object.value ?? null
+            : null;
     } catch (error) {
         return null;
     }
 };
 
-
 // export const findOrCreateTasksContainer = async (session: any): Promise<SolidContainer> => {
 export const findOrCreateTasksContainer = async (session: any) => {
-
     // const name = 'Bookmarks';
     // const url = "https://reza-soltani.solidcommunity.net/bookmarks";
     // const typeIndex = await Solid.findOrCreatePrivateTypeIndex();
-    const typeIndexUrl = "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl";
+    const typeIndexUrl =
+        "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl";
     // const containers = await SolidContainer.withEngine(getEngine()).fromTypeIndex(typeIndexUrl, Bookmark);
     // return (
     //     containers.find((container) => container.url === url)
     //     ??
     //     (await Solid.createPrivateContainer({ url, name, registerFor: SolidTask, reuseExisting: true }))
     // );
-}
-
-export const registerInTypeIndex = async (args: { instanceContainer: string; forClass: string; typeIndexUrl: string; }) => {
-    // SolidContainer.fromTypeIndex(args.typeIndexUrl, Bookmark).then(async (c) => {
-    //     if (c?.url) {
-    //         console.log("🚀 ~ file: utils.ts:138 ~ SolidContainer.fromTypeIndex ~ c?.url:", c?.url)
-
-    //     } else {
-    //         const typeRegistration = new SolidTypeRegistration({
-    //             forClass: args.forClass,
-    //             instanceContainer: args.instanceContainer,
-    //         });
-
-    //         typeRegistration.mintUrl(args.typeIndexUrl, true, v4())
-
-    //         return await typeRegistration.withEngine(getEngine()!, async () =>
-    //             await typeRegistration.save(urlParentDirectory(args.typeIndexUrl) ?? "")
-    //         );
-    //     }
-    // })
-    // return SolidContainer.withEngine(getEngine()!, async () => {
-    //     const container = new SolidContainer({ url: args.instanceContainer, name: args.instanceContainer });
-    //     console.log("🚀 ~ file: utils.ts:140 ~ returnSolidContainer.withEngine ~ container:", container)
-
-    //     // const res = await container.save();
-    //     // console.log("🚀 ~ file: utils.ts:143 ~ returnSolidContainer.withEngine ~ res:", res)
-
-    //     const reg = await container.register(args.typeIndexUrl, Bookmark);
-    //     console.log("🚀 ~ file: utils.ts:146 ~ returnSolidContainer.withEngine ~ reg:", reg)
-
-    //     return container;
-    // });
-
-    // const _container = await SolidContainer.fromTypeIndex(args.typeIndexUrl, Bookmark)
-    // // await (new Promise(resolve => setTimeout(resolve, 2000)))
-
-    // if (_container?.url) {// _container.url
-    //     console.log(`🚀 ~ file: utils.ts:158 ~ registerInTypeIndex ~ _container: ${_container.url} already exists`)
-    //     return
-    // } else {
-    //     console.log("🚀 ~ file: utils.ts:173 ~ registerInTypeIndex ~ else:")
-
-    //     const typeRegistration = new SolidTypeRegistration({
-    //         forClass: args.forClass,
-    //         instanceContainer: args.instanceContainer,
-    //     });
-
-    //     typeRegistration.mintUrl(args.typeIndexUrl, true, v4());
-
-    //     return await typeRegistration.withEngine(getEngine()!, async () => {
+};
 
 
-    //         await typeRegistration.save(urlParentDirectory(args.typeIndexUrl) ?? "")
-    //     }
 
-    //     );
-    // }
-
-
-    // const _container = await SolidContainer.fromTypeIndex(args.typeIndexUrl, Bookmark)
-    // // await (new Promise(resolve => setTimeout(resolve, 2000)))
-
-    // if (_container?.url) {// _container.url
-    //     console.log(`🚀 ~ file: utils.ts:158 ~ registerInTypeIndex ~ _container: ${_container.url} already exists`)
-    //     return
-    // } else {
-    //     console.log("🚀 ~ file: utils.ts:173 ~ registerInTypeIndex ~ else:")
-
-    //     const typeRegistration = new SolidTypeRegistration({
-    //         forClass: args.forClass,
-    //         instanceContainer: args.instanceContainer,
-    //     });
-
-    //     await typeRegistration.mintUrl(args.typeIndexUrl, true, v4());
-
-    //     const c = await SolidContainer.at(args.typeIndexUrl).find(typeRegistration.url)
-
-    //     if (c?.url) {
-    //         console.log("🚀 ~ file: utils.ts:185 ~ registerInTypeIndex ~ c?.url:", c?.url)
-
-    //     } else {
-    //         return await typeRegistration.withEngine(getEngine()!, async () =>
-    //             await typeRegistration.save(urlParentDirectory(args.typeIndexUrl) ?? "")
-    //         );
-    //     }
-    // }
-
+export const registerInTypeIndex = async (args: {
+    instanceContainer: string;
+    forClass: string;
+    typeIndexUrl: string;
+}) => {
     const typeRegistration = new SolidTypeRegistration({
         forClass: args.forClass,
         instanceContainer: args.instanceContainer,
@@ -225,45 +178,9 @@ export const registerInTypeIndex = async (args: { instanceContainer: string; for
     typeRegistration.mintUrl(args.typeIndexUrl, true, v4());
 
     return await typeRegistration.withEngine(getEngine()!, async () => {
-        const _container = await SolidContainer.fromTypeIndex(args.typeIndexUrl, Bookmark)
-
-        if (_container) {
-            throw new Error("existingContainer");
-        }
-
-        const container = new SolidContainer({ url: args.instanceContainer, name: args.instanceContainer });
-
-        await container.save();
-        await container.register(args.typeIndexUrl, Bookmark);
-
-        // await typeRegistration.save(urlParentDirectory(args.typeIndexUrl) ?? "")
-    }
-
-    );
-
-    // return SolidContainer.withEngine(getEngine()!, async () => {
-    //     const typeRegistration = new SolidTypeRegistration({
-    //         forClass: args.forClass,
-    //         instanceContainer: args.instanceContainer,
-    //     });
-
-    //     typeRegistration.mintUrl(args.typeIndexUrl, true, v4());
-
-    //     const existingContainer = await SolidContainer.find(args.instanceContainer);
-
-    //     if (existingContainer) throw new Error("existingContainer");
-
-    //     const container = existingContainer ?? new SolidContainer({ url: args.instanceContainer, name: args.instanceContainer });
-
-    //     await container.save();
-
-    //     await container.register(args.typeIndexUrl, Bookmark);
-
-    //     return container;
-    // });
-
+        await typeRegistration.save(urlParentDirectory(args.typeIndexUrl) ?? "");
+    });
 };
-
 
 export function urlRoot(url: string): string {
     const protocolIndex = url.indexOf("://") + 3;
@@ -283,9 +200,7 @@ export function urlParentDirectory(url: string): string | null {
 }
 
 // const foo = <T extends unknown>(x: T) => x;
-type TypeIndexType = 'public' | 'private';
-
-
+type TypeIndexType = "public" | "private";
 
 // async function mintTypeIndexUrl(baseURL: string, type: TypeIndexType, fetch?: Fetch): Promise<string> {
 //     fetch = fetch ?? window.fetch.bind(fetch);
@@ -297,20 +212,22 @@ type TypeIndexType = 'public' | 'private';
 //         : typeIndexUrl;
 // }
 
-
-
-export async function createTypeIndex(webId: string, type: TypeIndexType, fetch?: Fetch) {
-
-    const baseURL = webId.split("profile")[0]
+export async function createTypeIndex(
+    webId: string,
+    type: TypeIndexType,
+    fetch?: Fetch
+) {
+    const baseURL = webId.split("profile")[0];
 
     // fetch = fetch ?? window.fetch.bind(fetch);
 
     // const typeIndexUrl = await mintTypeIndexUrl(baseURL, type, fetch);
     const typeIndexUrl = `${baseURL}settings/${type}TypeIndex.ttl`;
 
-    const typeIndexBody = type === 'public'
-        ? '<> a <http://www.w3.org/ns/solid/terms#TypeIndex> .'
-        : `
+    const typeIndexBody =
+        type === "public"
+            ? "<> a <http://www.w3.org/ns/solid/terms#TypeIndex> ."
+            : `
             <> a
                 <http://www.w3.org/ns/solid/terms#TypeIndex>,
                 <http://www.w3.org/ns/solid/terms#UnlistedDocument> .
@@ -326,7 +243,7 @@ export async function createTypeIndex(webId: string, type: TypeIndexType, fetch?
         updateSolidDocument(webId, profileUpdateBody, fetch), // https://reza-soltani.solidcommunity.net/profile/card
     ]);
 
-    if (type === 'public') {
+    if (type === "public") {
         // TODO Implement updating ACLs for the listing itself to public
     }
 
@@ -341,46 +258,54 @@ export async function createTypeIndex(webId: string, type: TypeIndexType, fetch?
 //     return createTypeIndex(baseURL, webId, writableProfileUrl, 'private', fetch);
 // }
 
-
 async function findRegistrations(
     typeIndexUrl: string,
     type: string | string[],
     predicate: string,
-    fetch?: Fetch,
+    fetch?: Fetch
 ): Promise<string[]> {
     const typeIndex = await fetchSolidDocument(typeIndexUrl, fetch);
     const types = Array.isArray(type) ? type : [type];
 
-    return types.map(
-        type => typeIndex
-            .statements(undefined, 'rdf:type', 'solid:TypeRegistration')
-            .filter(statement => typeIndex.contains(statement.subject.value, 'solid:forClass', type))
-            .map(statement => typeIndex.statements(statement.subject.value, predicate))
-            .flat()
-            .map(statement => statement.object.value)
-            .filter(url => !!url),
-    ).flat();
+    return types
+        .map((type) =>
+            typeIndex
+                .statements(undefined, "rdf:type", "solid:TypeRegistration")
+                .filter((statement) =>
+                    typeIndex.contains(statement.subject.value, "solid:forClass", type)
+                )
+                .map((statement) =>
+                    typeIndex.statements(statement.subject.value, predicate)
+                )
+                .flat()
+                .map((statement) => statement.object.value)
+                .filter((url) => !!url)
+        )
+        .flat();
 }
-
 
 export async function findContainerRegistrations(
     typeIndexUrl: string,
     type: string | string[],
-    fetch?: Fetch,
+    fetch?: Fetch
 ): Promise<string[]> {
-    return findRegistrations(typeIndexUrl, type, 'solid:instanceContainer', fetch);
+    return findRegistrations(
+        typeIndexUrl,
+        type,
+        "solid:instanceContainer",
+        fetch
+    );
 }
 
 export async function findInstanceRegistrations(
     typeIndexUrl: string,
     type: string | string[],
-    fetch?: Fetch,
+    fetch?: Fetch
 ): Promise<string[]> {
-    return findRegistrations(typeIndexUrl, type, 'solid:instance', fetch);
+    return findRegistrations(typeIndexUrl, type, "solid:instance", fetch);
 }
 
 // =====================
-
 
 // type FetchContainrURLArgs = {
 //     typeIndexUrl?: string;
@@ -407,7 +332,6 @@ export async function findInstanceRegistrations(
 //     }
 // };
 
-
 // async function mintTypeIndexUrl(baseURL: string, type: TypeIndexType, fetch?: Fetch): Promise<string> {
 //     fetch = fetch ?? window.fetch.bind(fetch);
 
@@ -417,8 +341,6 @@ export async function findInstanceRegistrations(
 //         ? `${baseURL}settings/${type}TypeIndex.ttl`
 //         : typeIndexUrl;
 // }
-
-
 
 // export async function createTypeIndex(baseURL: string, webId: string, writableProfileUrl: string, type: TypeIndexType, fetch?: Fetch) {
 //     if (writableProfileUrl === null) {
@@ -460,5 +382,3 @@ export async function findInstanceRegistrations(
 // export async function createPrivateTypeIndex(baseURL: string, webId: string, writableProfileUrl: string, fetch?: Fetch): Promise<string> {
 //     return createTypeIndex(baseURL, webId, writableProfileUrl, 'private', fetch);
 // }
-
-
