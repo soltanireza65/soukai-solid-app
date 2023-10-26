@@ -5,6 +5,7 @@ import {
 import { FC, useEffect, useState } from "react";
 import { SolidModel } from "soukai-solid";
 import { useUserSession } from "../atoms/userSession.atom";
+import { registerInTypeIndex } from "@/utils";
 
 const Bookmarks: FC = () => {
   let pod: string = "";
@@ -13,25 +14,26 @@ const Bookmarks: FC = () => {
   const [bookmarks, setBookmarks] = useState<(Bookmark & SolidModel)[]>([]);
 
   useEffect(() => {
-    (async () => {
-      if (!userSession) return
+    // (async () => {
+    //   if (!userSession) return
+    //   // console.log("🚀 ~ file: Bookmarks.tsx:19 ~ userSession:")
 
-      const factory = await BookmarkFactory.getInstance({
-        webId: userSession?.info.webId ?? "",
-        fetch: userSession?.fetch,
-        typePredicate: "solid:privateTypeIndex"
-        // baseURL: pod,
-        // containerUrl: pod + "bookmarks/",
-        // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
-        // forClass: Bookmark.rdfsClasses[0]
-      },
-        // "bookmarks/"
-      );
+    //   const factory = await BookmarkFactory.getInstance({
+    //     webId: userSession?.info.webId ?? "",
+    //     fetch: userSession?.fetch,
+    //     typePredicate: "solid:privateTypeIndex"
+    //     // baseURL: pod,
+    //     // containerUrl: pod + "bookmarks/",
+    //     // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
+    //     // forClass: Bookmark.rdfsClasses[0]
+    //   },
+    //     // "bookmarks/"
+    //   );
 
-      const bookmarks = await factory.getAll();
-      setBookmarks(bookmarks);
-    })()
-  }, [userSession]);
+    //   const bookmarks = await factory.getAll();
+    //   setBookmarks(bookmarks);
+    // })()
+  }, []);
 
   return (
     <>
@@ -52,19 +54,26 @@ const Bookmarks: FC = () => {
         <button
           onClick={async () => {
             // const factory = await BookmarkFactory.getInstance({
-            //   baseURL: pod,
-            //   // containerUrl: pod + "bookmarks/",
-            //   fetch: userSession?.fetch,
             //   webId: userSession?.info.webId ?? "",
-            //   typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
-            //   forClass: Bookmark.rdfsClasses[0]
+            //   fetch: userSession?.fetch,
+            //   typePredicate: "solid:privateTypeIndex"
+            //   // baseURL: pod,
+            //   // containerUrl: pod + "bookmarks/",
+            //   // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
+            //   // forClass: Bookmark.rdfsClasses[0]
             // },
-            //   // pod + "bookmarks/"
+            //   // "bookmarks/"
             // );
 
             // const bookmark = await factory.create(form!);
 
-            // setForm({ title: "", link: "" });
+            await registerInTypeIndex({
+              forClass: Bookmark.rdfsClasses[0],
+              instanceContainer: 'https://solid-dm.solidcommunity.net/bookmarks/',
+              typeIndexUrl: 'https://solid-dm.solidcommunity.net/settings/privateTypeIndex.ttl',
+            });
+
+            setForm({ title: "", link: "" });
           }}
         >
           add

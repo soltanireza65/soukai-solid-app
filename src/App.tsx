@@ -4,7 +4,7 @@ import { bootSoukai, doLogin, doLogout, handleRedirectAfterLogin } from "./utils
 
 
 import BookmarksComp from "./components/Bookmarks";
-import { Box, Button, Container, Text } from "@chakra-ui/react";
+import { Box, Button, Container, Link, Text } from "@chakra-ui/react";
 
 function App() {
   const { userSession, setUserSession } = useUserSession();
@@ -38,8 +38,9 @@ const LoggedInView = () => {
     <Box>
       <Button onClick={doLogout}>Logout</Button>
       <Text>
-        Logged in as: {userSession?.info.webId && userSession?.info.webId}
+        Logged in as:
       </Text>
+      <Link href={userSession?.info.webId}>{userSession?.info.webId && userSession?.info.webId}</Link>
       <BookmarksComp />
     </Box>
   );

@@ -133,18 +133,135 @@ export const findOrCreateTasksContainer = async (session: any) => {
 }
 
 export const registerInTypeIndex = async (args: { instanceContainer: string; forClass: string; typeIndexUrl: string; }) => {
+    // SolidContainer.fromTypeIndex(args.typeIndexUrl, Bookmark).then(async (c) => {
+    //     if (c?.url) {
+    //         console.log("🚀 ~ file: utils.ts:138 ~ SolidContainer.fromTypeIndex ~ c?.url:", c?.url)
+
+    //     } else {
+    //         const typeRegistration = new SolidTypeRegistration({
+    //             forClass: args.forClass,
+    //             instanceContainer: args.instanceContainer,
+    //         });
+
+    //         typeRegistration.mintUrl(args.typeIndexUrl, true, v4())
+
+    //         return await typeRegistration.withEngine(getEngine()!, async () =>
+    //             await typeRegistration.save(urlParentDirectory(args.typeIndexUrl) ?? "")
+    //         );
+    //     }
+    // })
+    // return SolidContainer.withEngine(getEngine()!, async () => {
+    //     const container = new SolidContainer({ url: args.instanceContainer, name: args.instanceContainer });
+    //     console.log("🚀 ~ file: utils.ts:140 ~ returnSolidContainer.withEngine ~ container:", container)
+
+    //     // const res = await container.save();
+    //     // console.log("🚀 ~ file: utils.ts:143 ~ returnSolidContainer.withEngine ~ res:", res)
+
+    //     const reg = await container.register(args.typeIndexUrl, Bookmark);
+    //     console.log("🚀 ~ file: utils.ts:146 ~ returnSolidContainer.withEngine ~ reg:", reg)
+
+    //     return container;
+    // });
+
+    // const _container = await SolidContainer.fromTypeIndex(args.typeIndexUrl, Bookmark)
+    // // await (new Promise(resolve => setTimeout(resolve, 2000)))
+
+    // if (_container?.url) {// _container.url
+    //     console.log(`🚀 ~ file: utils.ts:158 ~ registerInTypeIndex ~ _container: ${_container.url} already exists`)
+    //     return
+    // } else {
+    //     console.log("🚀 ~ file: utils.ts:173 ~ registerInTypeIndex ~ else:")
+
+    //     const typeRegistration = new SolidTypeRegistration({
+    //         forClass: args.forClass,
+    //         instanceContainer: args.instanceContainer,
+    //     });
+
+    //     typeRegistration.mintUrl(args.typeIndexUrl, true, v4());
+
+    //     return await typeRegistration.withEngine(getEngine()!, async () => {
+
+
+    //         await typeRegistration.save(urlParentDirectory(args.typeIndexUrl) ?? "")
+    //     }
+
+    //     );
+    // }
+
+
+    // const _container = await SolidContainer.fromTypeIndex(args.typeIndexUrl, Bookmark)
+    // // await (new Promise(resolve => setTimeout(resolve, 2000)))
+
+    // if (_container?.url) {// _container.url
+    //     console.log(`🚀 ~ file: utils.ts:158 ~ registerInTypeIndex ~ _container: ${_container.url} already exists`)
+    //     return
+    // } else {
+    //     console.log("🚀 ~ file: utils.ts:173 ~ registerInTypeIndex ~ else:")
+
+    //     const typeRegistration = new SolidTypeRegistration({
+    //         forClass: args.forClass,
+    //         instanceContainer: args.instanceContainer,
+    //     });
+
+    //     await typeRegistration.mintUrl(args.typeIndexUrl, true, v4());
+
+    //     const c = await SolidContainer.at(args.typeIndexUrl).find(typeRegistration.url)
+
+    //     if (c?.url) {
+    //         console.log("🚀 ~ file: utils.ts:185 ~ registerInTypeIndex ~ c?.url:", c?.url)
+
+    //     } else {
+    //         return await typeRegistration.withEngine(getEngine()!, async () =>
+    //             await typeRegistration.save(urlParentDirectory(args.typeIndexUrl) ?? "")
+    //         );
+    //     }
+    // }
+
     const typeRegistration = new SolidTypeRegistration({
         forClass: args.forClass,
         instanceContainer: args.instanceContainer,
     });
 
-    if (typeRegistration.url) {
-        return
-    }
     typeRegistration.mintUrl(args.typeIndexUrl, true, v4());
-    await typeRegistration.withEngine(getEngine()!, () =>
-        typeRegistration.save(urlParentDirectory(args.typeIndexUrl) ?? "")
+
+    return await typeRegistration.withEngine(getEngine()!, async () => {
+        const _container = await SolidContainer.fromTypeIndex(args.typeIndexUrl, Bookmark)
+
+        if (_container) {
+            throw new Error("existingContainer");
+        }
+
+        const container = new SolidContainer({ url: args.instanceContainer, name: args.instanceContainer });
+
+        await container.save();
+        await container.register(args.typeIndexUrl, Bookmark);
+
+        // await typeRegistration.save(urlParentDirectory(args.typeIndexUrl) ?? "")
+    }
+
     );
+
+    // return SolidContainer.withEngine(getEngine()!, async () => {
+    //     const typeRegistration = new SolidTypeRegistration({
+    //         forClass: args.forClass,
+    //         instanceContainer: args.instanceContainer,
+    //     });
+
+    //     typeRegistration.mintUrl(args.typeIndexUrl, true, v4());
+
+    //     const existingContainer = await SolidContainer.find(args.instanceContainer);
+
+    //     if (existingContainer) throw new Error("existingContainer");
+
+    //     const container = existingContainer ?? new SolidContainer({ url: args.instanceContainer, name: args.instanceContainer });
+
+    //     await container.save();
+
+    //     await container.register(args.typeIndexUrl, Bookmark);
+
+    //     return container;
+    // });
+
 };
 
 
