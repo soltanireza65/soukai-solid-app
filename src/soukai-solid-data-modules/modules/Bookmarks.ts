@@ -46,18 +46,10 @@ export class BookmarkFactory {
 
     public static async getInstance(args?: GetInstanceArgs, containerUrl?: string): Promise<BookmarkFactory> {
         if (!BookmarkFactory.instance) {
-            // const typeIndexUrl = await createTypeIndex(args?.webId!, "private", args?.fetch)
-
             try {
                 const baseURL = args?.webId.split("profile")[0] // https://example.solidcommunity.net/
 
                 containerUrl = `${baseURL}${containerUrl ?? "bookmarks/"}`.replace("//", "/") // normalize url
-
-                // await registerInTypeIndex({
-                //     forClass: Bookmark.rdfsClasses[0],
-                //     instanceContainer: containerUrl,
-                //     typeIndexUrl: 'https://solid-dm.solidcommunity.net/settings/privateTypeIndex.ttl',
-                // });
 
                 let _containerUrl = ""
 
@@ -71,7 +63,7 @@ export class BookmarkFactory {
                     const _container = await SolidContainer.fromTypeIndex(typeIndexUrl, Bookmark)
                     if (!_container) {
 
-                        _containerUrl = containerUrl
+                        _containerUrl = containerUrl ?? baseURL + "bookmarks/"
 
                         await registerInTypeIndex({
                             forClass: Bookmark.rdfsClasses[0],
@@ -85,7 +77,7 @@ export class BookmarkFactory {
                 } else {
                     // Create TypeIndex
                     const typeIndexUrl = await createTypeIndex(args?.webId!, "private", args?.fetch)
-                    _containerUrl = containerUrl
+                    _containerUrl = containerUrl ?? baseURL + "bookmarks/"
 
                     // add containerUrl to typeIndex
                     // TODO: it inserts two instances
