@@ -5,10 +5,10 @@ import {
 import { FC, useEffect, useState } from "react";
 import { SolidModel } from "soukai-solid";
 import { useUserSession } from "../atoms/userSession.atom";
-import { registerInTypeIndex } from "@/utils";
+// import { registerInTypeIndex } from "@/utils";
 
 const Bookmarks: FC = () => {
-  let pod: string = "";
+  // let pod: string = "";
   const { userSession } = useUserSession();
   const [form, setForm] = useState({ title: "", link: "" });
   const [bookmarks, setBookmarks] = useState<(Bookmark & SolidModel)[]>([]);
