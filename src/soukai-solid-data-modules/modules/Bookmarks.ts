@@ -1,6 +1,6 @@
 
 import { createTypeIndex, getTypeIndexFromPofile, registerInTypeIndex } from "@/utils";
-import { FieldType, TimestampField, getEngine } from "soukai";
+import { FieldType, TimestampField } from "soukai";
 import { Fetch, SolidContainer, SolidModel, defineSolidModelSchema } from "soukai-solid";
 import { ISoukaiDocumentBase } from "../shared/contracts";
 
@@ -30,8 +30,11 @@ export const BookmarkSchema = defineSolidModelSchema({
     },
 });
 
-export class Bookmark extends BookmarkSchema { }
-
+export class Bookmark extends BookmarkSchema {
+    // protected initialize(attributes: Attributes, exists: boolean): void {
+        
+    // }
+ }
 
 interface GetInstanceArgs {
     webId: string,
@@ -42,17 +45,16 @@ interface GetInstanceArgs {
 export class BookmarkFactory {
     private static instance: BookmarkFactory;
 
-    private constructor(private containerUrl: string, private containerUrls: string[]) { }
+    private constructor(private containerUrls: string[] = []) { }
 
-    public static async getInstance(args?: GetInstanceArgs, containerUrl?: string): Promise<BookmarkFactory> {
+    public static async getInstance(args?: GetInstanceArgs, defaultContainerUrl?: string): Promise<BookmarkFactory> {
         if (!BookmarkFactory.instance) {
             try {
                 const baseURL = args?.webId.split("profile")[0] // https://example.solidcommunity.net/
 
-                containerUrl = `${baseURL}${containerUrl ?? "bookmarks/"}`.replace("//", "/") // normalize url
+                defaultContainerUrl = `${baseURL}${defaultContainerUrl ?? "bookmarks/"}`.replace("//", "/") // normalize url
 
-                let _containerUrls = []
-                let _containerUrl = ""
+                let _containerUrls :string[] = []
 
                 const typeIndexUrl = await getTypeIndexFromPofile({
                     webId: args?.webId ?? "",
@@ -61,48 +63,35 @@ export class BookmarkFactory {
                 })
 
                 if (typeIndexUrl) {
-                    
-                    // const containers = await SolidContainer.withEngine(getEngine()!).fromTypeIndex(
-                    //     typeIndex.url,
-                    //     SolidTask,
-                    // );
-            
-                    const _containers = (await SolidContainer.fromTypeIndex(typeIndexUrl, Bookmark))
-                    _containers.forEach(_c => {
-                        
-                    });
+                    const _containers = await SolidContainer.fromTypeIndex(typeIndexUrl, Bookmark)
 
-                    const _container = (await SolidContainer.fromTypeIndex(typeIndexUrl, Bookmark))[0]
+                    if (!_containers || !_containers.length) {
 
-                    if (!_container) {
-
-                        _containerUrl = containerUrl ?? baseURL + "bookmarks/"
+                        _containerUrls.push(defaultContainerUrl)
 
                         await registerInTypeIndex({
                             forClass: Bookmark.rdfsClasses[0],
-                            instanceContainer: _containerUrl,
+                            instanceContainer: _containerUrls[0],
                             typeIndexUrl: typeIndexUrl,
                         });
 
                     } else {
-                        _containerUrls.push(_container?.url)
-                        _containerUrl = _container?.url ?? ""
+                        _containerUrls = [..._containerUrls, ..._containers.map(c => c.url)]
                     }
                 } else {
                     // Create TypeIndex
                     const typeIndexUrl = await createTypeIndex(args?.webId!, "private", args?.fetch)
-                    _containerUrl = containerUrl ?? baseURL + "bookmarks/"
+                    _containerUrls.push(defaultContainerUrl)
 
-                    // add containerUrl to typeIndex
                     // TODO: it inserts two instances
                     await registerInTypeIndex({
                         forClass: Bookmark.rdfsClasses[0],
-                        instanceContainer: _containerUrl,
+                        instanceContainer: _containerUrls[0],
                         typeIndexUrl: typeIndexUrl,
                     });
                 }
 
-                BookmarkFactory.instance = new BookmarkFactory(_containerUrl, _containerUrls);
+                BookmarkFactory.instance = new BookmarkFactory(_containerUrls);
 
             } catch (error: any) {
                 console.log(error.message);
