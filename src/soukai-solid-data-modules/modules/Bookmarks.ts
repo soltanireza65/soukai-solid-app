@@ -52,8 +52,9 @@ export class BookmarkFactory {
             try {
                 const baseURL = args?.webId.split("profile")[0] // https://example.solidcommunity.net/
 
-                defaultContainerUrl = `${baseURL}${defaultContainerUrl ?? "bookmarks/"}`.replace("//", "/") // normalize url
+                defaultContainerUrl = `${baseURL}${defaultContainerUrl ?? "bookmarks/"}` //.replace("//", "/") // normalize url
 
+                console.log("🚀 ~ file: Bookmarks.ts:57 ~ BookmarkFactory ~ getInstance ~ defaultContainerUrl:", defaultContainerUrl)
                 let _containerUrls :string[] = []
 
                 const typeIndexUrl = await getTypeIndexFromPofile({
