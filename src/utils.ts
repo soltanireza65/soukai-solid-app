@@ -12,6 +12,7 @@ import {
     Fetch,
     SolidContainer,
     SolidEngine,
+    SolidModel,
     SolidTypeIndex,
     // SolidTypeIndex,
     SolidTypeRegistration,
@@ -105,31 +106,16 @@ export const fetchContainerUrl = async (args: FetchContainrURLArgs) => {
     try {
         const typeIndexUrl = args.typeIndexUrl!; // ?? await createPrivateTypeIndex(args.baseURL, args.webId, `${args.baseURL}profile/card`, fetch);
 
-        const containerUrl = (
-            await SolidContainer.fromTypeIndex(args.typeIndexUrl!, Bookmark)
-        )?.url;
+        // const containerUrl = (
+        //     await SolidContainer.fromTypeIndex(args.typeIndexUrl!, Bookmark)
+        // );
 
         const document = await fetchSolidDocument(typeIndexUrl, args.fetch);
-        console.log(
-            "🚀 ~ file: utils.ts:80 ~ fetchContainerUrl ~ document:",
-            document
-        );
 
         const containerType = document
             .statements(undefined, "rdf:type", "solid:TypeRegistration")
-            .map((x) => {
-                console.log(
-                    "🚀 ~ file: utils.ts:86 ~ fetchContainerUrl ~ containerType:",
-                    document.statement(
-                        containerType?.subject.value,
-                        "solid:instanceContainer"
-                    )
-                );
-                return x;
-            })
             .find(
                 (statement) =>
-                    // document.contains(statement.subject.value, "solid:forClass", "https://schema.org/Movie")
                     document.contains(
                         statement.subject.value,
                         "solid:forClass",
@@ -162,8 +148,6 @@ export const findOrCreateTasksContainer = async (session: any) => {
     //     (await Solid.createPrivateContainer({ url, name, registerFor: SolidTask, reuseExisting: true }))
     // );
 };
-
-
 
 export const registerInTypeIndex = async (args: {
     instanceContainer: string;
@@ -382,3 +366,44 @@ export async function findInstanceRegistrations(
 // export async function createPrivateTypeIndex(baseURL: string, webId: string, writableProfileUrl: string, fetch?: Fetch): Promise<string> {
 //     return createTypeIndex(baseURL, webId, writableProfileUrl, 'private', fetch);
 // }
+
+export const fromTypeIndex = async (
+    typeIndexUrl: string,
+    childrenModelClass: typeof SolidModel
+) => {
+    const engine = getEngine();
+
+    const fetch = engine instanceof SolidEngine ? engine.getFetch() : undefined;
+
+    const containerPromise = findContainerRegistrations(typeIndexUrl, childrenModelClass.rdfsClasses, fetch);
+
+    const instancePromise = findInstanceRegistrations(typeIndexUrl, childrenModelClass.rdfsClasses, fetch);
+
+    const allPromise = Promise.all([containerPromise, instancePromise]);
+
+    try {
+        const [containers, instances] = await allPromise;
+
+        const result = [
+            ...containers.map(url => SolidContainer.newInstance({ url }, true)),
+            ...instances.map(url => SolidContainer.newInstance({ url }, true))
+        ]
+
+        return result
+
+    } catch (error) {
+        console.log("🚀 ~ file: utils.ts:389 ~ error:", error)
+    }
+
+
+    // const c_urls = await findContainerRegistrations(typeIndexUrl, childrenModelClass.rdfsClasses, fetch);
+
+    // const i_urls = await findInstanceRegistrations(typeIndexUrl, childrenModelClass.rdfsClasses, fetch);
+
+    // const urls = [...c_urls, ...i_urls]
+
+    // console.log("🚀 ~ file: utils.ts:383 ~ urls:", urls)
+
+
+    // return urls.map(url => SolidContainer.newInstance({ url }, true));
+};

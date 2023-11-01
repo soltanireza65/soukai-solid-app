@@ -30,6 +30,8 @@ const Bookmarks: FC = () => {
         // "bookmarks/"
       );
 
+      // const res =  await Bookmark.from("https:/solid-dm.solidcommunity.net/bookmarks/").all()
+      // console.log("🚀 ~ file: Bookmarks.tsx:34 ~ resss:", res)
       const bookmarks = await factory.getAll();
       setBookmarks(bookmarks);
     })()

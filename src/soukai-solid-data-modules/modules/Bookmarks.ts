@@ -1,6 +1,6 @@
 
-import { createTypeIndex, getTypeIndexFromPofile, registerInTypeIndex } from "@/utils";
-import { FieldType, TimestampField } from "soukai";
+import { createTypeIndex, fetchContainerUrl, fromTypeIndex, getTypeIndexFromPofile, registerInTypeIndex } from "@/utils";
+import { Attributes, FieldType, Model, TimestampField } from "soukai";
 import { Fetch, SolidContainer, SolidModel, defineSolidModelSchema } from "soukai-solid";
 import { ISoukaiDocumentBase } from "../shared/contracts";
 
@@ -32,15 +32,21 @@ export const BookmarkSchema = defineSolidModelSchema({
 
 export class Bookmark extends BookmarkSchema {
     // protected initialize(attributes: Attributes, exists: boolean): void {
+
+    // }
+    // newInstance({ url: "url" }, true)
+    // newInstance<T extends Model>(this: T, attributes?: Attributes | undefined, exists?: boolean | undefined): T {
         
     // }
- }
+}
 
 interface GetInstanceArgs {
     webId: string,
     fetch?: Fetch,
     typePredicate?: "solid:publicTypeIndex" | "solid:privateTypeIndex"
 }
+
+
 
 export class BookmarkFactory {
     private static instance: BookmarkFactory;
@@ -55,7 +61,7 @@ export class BookmarkFactory {
                 defaultContainerUrl = `${baseURL}${defaultContainerUrl ?? "bookmarks/"}` //.replace("//", "/") // normalize url
 
                 console.log("🚀 ~ file: Bookmarks.ts:57 ~ BookmarkFactory ~ getInstance ~ defaultContainerUrl:", defaultContainerUrl)
-                let _containerUrls :string[] = []
+                let _containerUrls: string[] = []
 
                 const typeIndexUrl = await getTypeIndexFromPofile({
                     webId: args?.webId ?? "",
@@ -64,7 +70,11 @@ export class BookmarkFactory {
                 })
 
                 if (typeIndexUrl) {
+                    const res = await fromTypeIndex(typeIndexUrl, Bookmark)
+                    console.log("🚀 ~ file: Bookmarks.ts:70 ~ BookmarkFactory ~ getInstance ~ res:", res?.map(c => c.url))
+
                     const _containers = await SolidContainer.fromTypeIndex(typeIndexUrl, Bookmark)
+                    console.log("🚀 ~ file: Bookmarks.ts:68 ~ BookmarkFactory ~ getInstance ~ _containers:", _containers.map(c => c.url))
 
                     if (!_containers || !_containers.length) {
 
@@ -102,7 +112,7 @@ export class BookmarkFactory {
     }
 
     async getAll() {
-        const promises =  this.containerUrls.map(c => Bookmark.from(c).all())
+        const promises = this.containerUrls.map(c => Bookmark.from(c).all())
 
         const allPromise = Promise.all(promises);
 
@@ -118,13 +128,13 @@ export class BookmarkFactory {
     }
 
     async get(id: string) {
-        const promises =  this.containerUrls.map(c => Bookmark.from(c).find(id))
+        const promises = this.containerUrls.map(c => Bookmark.from(c).find(id))
         const allPromise = Promise.all(promises);
         try {
             const values = (await allPromise).flat();
 
             return values[0]
-            
+
         } catch (error) {
             console.log(error);
             return undefined
@@ -138,13 +148,13 @@ export class BookmarkFactory {
     }
 
     async update(id: string, payload: IBookmark) {
-        const promises =  this.containerUrls.map(c => Bookmark.from(c).find(id))
+        const promises = this.containerUrls.map(c => Bookmark.from(c).find(id))
         const allPromise = Promise.all(promises);
         try {
             const values = (await allPromise).flat();
 
             return values.map(v => v?.update(payload))
-            
+
         } catch (error) {
             console.log(error);
             return undefined
@@ -156,13 +166,13 @@ export class BookmarkFactory {
     }
 
     async remove(id: string) {
-        const promises =  this.containerUrls.map(c => Bookmark.from(c).find(id))
+        const promises = this.containerUrls.map(c => Bookmark.from(c).find(id))
         const allPromise = Promise.all(promises);
         try {
             const values = (await allPromise).flat();
 
-            return values.map(async(v) => await v?.delete())
-            
+            return values.map(async (v) => await v?.delete())
+
         } catch (error) {
             console.log(error);
             return undefined
