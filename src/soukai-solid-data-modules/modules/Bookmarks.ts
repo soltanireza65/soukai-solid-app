@@ -1,10 +1,14 @@
 
-import { createTypeIndex, fetchContainerUrl, fromTypeIndex, getTypeIndexFromPofile, registerInTypeIndex } from "@/utils";
-import { Attributes, FieldType, Model, TimestampField } from "soukai";
-import { Fetch, SolidContainer, SolidModel, defineSolidModelSchema } from "soukai-solid";
+import { createTypeIndex, fromTypeIndex, getTypeIndexFromPofile, registerInTypeIndex } from "@/utils";
+import { FieldType, TimestampField } from "soukai";
+import { Fetch, SolidContainer, SolidDocument, SolidModel, defineSolidModelSchema } from "soukai-solid";
 import { ISoukaiDocumentBase } from "../shared/contracts";
+import { v4 } from "uuid";
 
 export type ICreateBookmark = {
+    // id: string
+    // url: string
+    hasTopic: string
     title: string
     link: string
 }
@@ -16,9 +20,14 @@ export const BookmarkSchema = defineSolidModelSchema({
         'bookm': 'http://www.w3.org/2002/01/bookmark#',
         'dct': 'http://purl.org/dc/terms/',
     },
+    // primaryKey: "id",
     rdfsClasses: ['bookm:Bookmark'],
-    timestamps: [TimestampField.CreatedAt],
+    timestamps: [TimestampField.CreatedAt, TimestampField.UpdatedAt],
     fields: {
+        hasTopic: {
+            type: FieldType.Any,
+            rdfProperty: 'bookm:hasTopic',
+        },
         title: {
             type: FieldType.String,
             rdfProperty: 'dct:title',
@@ -36,7 +45,7 @@ export class Bookmark extends BookmarkSchema {
     // }
     // newInstance({ url: "url" }, true)
     // newInstance<T extends Model>(this: T, attributes?: Attributes | undefined, exists?: boolean | undefined): T {
-        
+
     // }
 }
 
@@ -51,7 +60,10 @@ interface GetInstanceArgs {
 export class BookmarkFactory {
     private static instance: BookmarkFactory;
 
-    private constructor(private containerUrls: string[] = []) { }
+    private constructor(
+        private containerUrls: string[] = [],
+        private instancesUrls: string[] = [],
+    ) { }
 
     public static async getInstance(args?: GetInstanceArgs, defaultContainerUrl?: string): Promise<BookmarkFactory> {
         if (!BookmarkFactory.instance) {
@@ -62,6 +74,7 @@ export class BookmarkFactory {
 
                 console.log("🚀 ~ file: Bookmarks.ts:57 ~ BookmarkFactory ~ getInstance ~ defaultContainerUrl:", defaultContainerUrl)
                 let _containerUrls: string[] = []
+                let _instancesUrls: string[] = []
 
                 const typeIndexUrl = await getTypeIndexFromPofile({
                     webId: args?.webId ?? "",
@@ -70,11 +83,11 @@ export class BookmarkFactory {
                 })
 
                 if (typeIndexUrl) {
-                    const res = await fromTypeIndex(typeIndexUrl, Bookmark)
-                    console.log("🚀 ~ file: Bookmarks.ts:70 ~ BookmarkFactory ~ getInstance ~ res:", res?.map(c => c.url))
+                    // const res = await fromTypeIndex(typeIndexUrl, Bookmark)
+                    // console.log("🚀 ~ file: Bookmarks.ts:70 ~ BookmarkFactory ~ getInstance ~ res:", res?.map(c => c.url))
 
-                    const _containers = await SolidContainer.fromTypeIndex(typeIndexUrl, Bookmark)
-                    console.log("🚀 ~ file: Bookmarks.ts:68 ~ BookmarkFactory ~ getInstance ~ _containers:", _containers.map(c => c.url))
+
+                    const _containers = await SolidContainer.fromTypeIndex(typeIndexUrl, Bookmark);
 
                     if (!_containers || !_containers.length) {
 
@@ -89,6 +102,13 @@ export class BookmarkFactory {
                     } else {
                         _containerUrls = [..._containerUrls, ..._containers.map(c => c.url)]
                     }
+
+                    const _instances = await SolidDocument.fromTypeIndex(typeIndexUrl, Bookmark);
+
+                    if (_instances.length) {
+                        _instancesUrls = [..._instancesUrls, ..._instances.map(c => c.url)]
+                    }
+
                 } else {
                     // Create TypeIndex
                     const typeIndexUrl = await createTypeIndex(args?.webId!, "private", args?.fetch)
@@ -102,7 +122,7 @@ export class BookmarkFactory {
                     });
                 }
 
-                BookmarkFactory.instance = new BookmarkFactory(_containerUrls);
+                BookmarkFactory.instance = new BookmarkFactory(_containerUrls, _instancesUrls);
 
             } catch (error: any) {
                 console.log(error.message);
@@ -112,9 +132,13 @@ export class BookmarkFactory {
     }
 
     async getAll() {
-        const promises = this.containerUrls.map(c => Bookmark.from(c).all())
+        const containerPromises = this.containerUrls.map(c => Bookmark.from(c).all())
+        const instancePromises = this.instancesUrls.map(i => Bookmark.all({ $in: [i] }))
 
-        const allPromise = Promise.all(promises);
+        const allPromise = Promise.all([
+            ...containerPromises,
+            ...instancePromises
+        ]);
 
         try {
             const values = (await allPromise).flat();
@@ -123,62 +147,84 @@ export class BookmarkFactory {
             console.log(error);
             return [] as (Bookmark & SolidModel)[]
         }
-
-        // return await Bookmark.from(this.containerUrl).all();
     }
 
     async get(id: string) {
-        const promises = this.containerUrls.map(c => Bookmark.from(c).find(id))
-        const allPromise = Promise.all(promises);
-        try {
-            const values = (await allPromise).flat();
+        const res = await Bookmark.findOrFail(id)
 
-            return values[0]
+        return res
 
-        } catch (error) {
-            console.log(error);
-            return undefined
-        }
-        // return await Bookmark.from(this.containerUrl).find(id);
+        // const containerPromises = this.containerUrls.map(c => Bookmark.from(c).find(id))
+        // const instancePromises = this.instancesUrls.map(i => Bookmark.all({ $in: [i] }))
+
+        // const allPromise = Promise.all([...containerPromises, ...instancePromises]);
+        // try {
+        //     const values = (await allPromise).flat();
+
+        //     return values[0]
+
+        // } catch (error) {
+        //     console.log(error);
+        //     return undefined
+        // }
     }
 
     async create(payload: ICreateBookmark) {
-        const bookmark = new Bookmark(payload);
-        return await bookmark.save(this.containerUrls[0]);
+        const id = v4()
+
+        const bookmark = new Bookmark({
+            ...payload,
+            id: id,
+            url: `${this.containerUrls[0]}${id}`
+
+        });
+
+        // bookmark.url = `${this.containerUrls[0]}${id}#it`
+
+        return await bookmark.save();
     }
 
     async update(id: string, payload: IBookmark) {
-        const promises = this.containerUrls.map(c => Bookmark.from(c).find(id))
-        const allPromise = Promise.all(promises);
         try {
-            const values = (await allPromise).flat();
-
-            return values.map(v => v?.update(payload))
-
+            const res = await Bookmark.findOrFail(id)
+            return await res.update(payload)
         } catch (error) {
             console.log(error);
             return undefined
         }
 
+        // const promises = this.containerUrls.map(c => Bookmark.from(c).find(id))
+        // const allPromise = Promise.all(promises);
+        // try {
+        //     const values = (await allPromise).flat();
 
-        // const bookmark = await Bookmark.from(this.containerUrl).find(id)
-        // return await bookmark?.update(payload);
+        //     return values.map(v => v?.update(payload))
+
+        // } catch (error) {
+        //     console.log(error);
+        //     return undefined
+        // }
     }
 
     async remove(id: string) {
-        const promises = this.containerUrls.map(c => Bookmark.from(c).find(id))
-        const allPromise = Promise.all(promises);
         try {
-            const values = (await allPromise).flat();
-
-            return values.map(async (v) => await v?.delete())
-
+            const res = await Bookmark.findOrFail(id)
+            return await res.delete()
         } catch (error) {
             console.log(error);
             return undefined
         }
 
-        // const bookmark = await Bookmark.from(this.containerUrl).find(id)
-        // return await bookmark?.delete();
+        // const promises = this.containerUrls.map(c => Bookmark.from(c).find(id))
+        // const allPromise = Promise.all(promises);
+        // try {
+        //     const values = (await allPromise).flat();
+
+        //     return values.map(async (v) => await v?.delete())
+
+        // } catch (error) {
+        //     console.log(error);
+        //     return undefined
+        // }
     }
 }

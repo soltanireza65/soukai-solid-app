@@ -1,69 +1,91 @@
-import { Flex } from "@chakra-ui/react";
 import {
-  Bookmark, BookmarkFactory
+  Button,
+  ButtonGroup,
+  Flex,
+  Input,
+  Table,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr,
+} from "@chakra-ui/react";
+import {
+  Bookmark,
+  BookmarkFactory,
 } from "@soukai-solid-data-modules/modules/Bookmarks";
 import { FC, useEffect, useState } from "react";
-import { SolidModel } from "soukai-solid";
+import { SolidDocument, SolidModel } from "soukai-solid";
 import { useUserSession } from "../atoms/userSession.atom";
-// import { registerInTypeIndex } from "@/utils";
+import { v4 } from "uuid";
 
 const Bookmarks: FC = () => {
-  // let pod: string = "";
   const { userSession } = useUserSession();
-  const [form, setForm] = useState({ title: "", link: "" });
+  const [form, setForm] = useState({ title: "", link: "", hasTopic: "" });
   const [bookmarks, setBookmarks] = useState<(Bookmark & SolidModel)[]>([]);
 
   useEffect(() => {
     (async () => {
-      if (!userSession) return
+      if (!userSession) return;
       // console.log("🚀 ~ file: Bookmarks.tsx:19 ~ userSession:")
 
-      const factory = await BookmarkFactory.getInstance({
-        webId: userSession?.info.webId ?? "",
-        fetch: userSession?.fetch,
-        typePredicate: "solid:privateTypeIndex"
-        // baseURL: pod,
-        // containerUrl: pod + "bookmarks/",
-        // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
-        // forClass: Bookmark.rdfsClasses[0]
-      },
+      const factory = await BookmarkFactory.getInstance(
+        {
+          webId: userSession?.info.webId ?? "",
+          fetch: userSession?.fetch,
+          typePredicate: "solid:privateTypeIndex",
+          // baseURL: pod,
+          // containerUrl: pod + "bookmarks/",
+          // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
+          // forClass: Bookmark.rdfsClasses[0]
+        }
         // "bookmarks/"
       );
 
-      // const res =  await Bookmark.from("https:/solid-dm.solidcommunity.net/bookmarks/").all()
-      // console.log("🚀 ~ file: Bookmarks.tsx:34 ~ resss:", res)
       const bookmarks = await factory.getAll();
       setBookmarks(bookmarks);
-    })()
+
+      const res = await Bookmark.findOrFail(
+        "https://solid-dm.solidcommunity.net/bookmarks/index.ttl#9a34eeec-01cc-4191-ad13-58c16ccf11f8"
+      );
+      console.log("🚀 ~ file: Bookmarks.tsx:37 ~ res:", res.getAttributes());
+    })();
   }, []);
 
   return (
     <>
-      <Flex>
-        <input
+      <Flex gap={2}>
+        <Input
+          value={form?.hasTopic}
+          onChange={(e) =>
+            setForm((prev: any) => ({ ...prev, hasTopic: e.target.value }))
+          }
+        />
+        <Input
           value={form?.title}
           onChange={(e) =>
             setForm((prev: any) => ({ ...prev, title: e.target.value }))
           }
         />
-        <input
+        <Input
           value={form?.link}
           onChange={(e) =>
             setForm((prev: any) => ({ ...prev, link: e.target.value }))
           }
         />
 
-        <button
+        <Button
           onClick={async () => {
-            const factory = await BookmarkFactory.getInstance({
-              webId: userSession?.info.webId ?? "",
-              fetch: userSession?.fetch,
-              typePredicate: "solid:privateTypeIndex"
-              // baseURL: pod,
-              // containerUrl: pod + "bookmarks/",
-              // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
-              // forClass: Bookmark.rdfsClasses[0]
-            },
+            const factory = await BookmarkFactory.getInstance(
+              {
+                webId: userSession?.info.webId ?? "",
+                fetch: userSession?.fetch,
+                typePredicate: "solid:privateTypeIndex",
+                // baseURL: pod,
+                // containerUrl: pod + "bookmarks/",
+                // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
+                // forClass: Bookmark.rdfsClasses[0]
+              }
               // "bookmarks/"
             );
 
@@ -75,45 +97,94 @@ const Bookmarks: FC = () => {
             //   typeIndexUrl: 'https://solid-dm.solidcommunity.net/settings/privateTypeIndex.ttl',
             // });
 
-            setForm({ title: "", link: "" });
+            setForm({ title: "", link: "", hasTopic: "" });
           }}
         >
-          add
-        </button>
+          ADD
+        </Button>
       </Flex>
       <div>
-        <table>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Link</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table
+          variant="striped"
+          size="sm"
+        >
+          <Thead>
+            <Tr>
+              <Th>Title</Th>
+              <Th>Link</Th>
+              <Th>actions</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
             {bookmarks?.map((b, i) => (
-              <tr key={i}>
-                <td>{b.title}</td>
-                <td>
+              <Tr key={i}>
+                <Td>{b.title}</Td>
+                <Td>
                   <a>{b.link}</a>
-                </td>
-              </tr>
+                </Td>
+                <Td>
+                  <ButtonGroup variant="outline">
+                    <Button
+                      onClick={async () => {
+                        const factory = await BookmarkFactory.getInstance({
+                          webId: userSession?.info.webId ?? "",
+                          fetch: userSession?.fetch,
+                          typePredicate: "solid:privateTypeIndex",
+                        });
+
+                        const bookmark = await factory.get(b.url);
+                        console.log(
+                          "🚀 ~ file: Bookmarks.tsx:122 ~ <ButtononClick={ ~ bookmark:",
+                          bookmark.getAttributes()
+                        );
+                      }}
+                    >
+                      GET
+                    </Button>
+
+                    <Button
+                      onClick={async () => {
+                        const factory = await BookmarkFactory.getInstance({
+                          webId: userSession?.info.webId ?? "",
+                          fetch: userSession?.fetch,
+                          typePredicate: "solid:privateTypeIndex",
+                        });
+
+                        const bookmark = await factory.update(b.url, {
+                          ...(b as any),
+                          title: (Math.random() + 1).toString(36).substring(7),
+                        });
+                        console.log(
+                          "🚀 ~ file: Bookmarks.tsx:122 ~ <ButtononClick={ ~ bookmark:",
+                          bookmark?.getAttributes()
+                        );
+                      }}
+                    >
+                      UPD
+                    </Button>
+
+                    <Button
+                      onClick={async () => {
+                        const factory = await BookmarkFactory.getInstance({
+                          webId: userSession?.info.webId ?? "",
+                          fetch: userSession?.fetch,
+                          typePredicate: "solid:privateTypeIndex",
+                        });
+
+                        await factory.remove(b.url);
+                      }}
+                    >
+                      DEL
+                    </Button>
+                  </ButtonGroup>
+                </Td>
+              </Tr>
             ))}
-          </tbody>
-        </table>
+          </Tbody>
+        </Table>
       </div>
     </>
   );
 };
 
 export default Bookmarks;
-
-
-
-const func = async () => {
-  // await new Promise(resolve => setTimeout(resolve, 2000));
-  await fetch('https://jsonplaceholder.typicode.com/todos/1')
-  // .then(response => response.json())
-  // .then(json => console.log(json))
-  console.log("clicked");
-
-}
