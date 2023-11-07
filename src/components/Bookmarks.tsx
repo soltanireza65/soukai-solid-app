@@ -33,7 +33,7 @@ const Bookmarks: FC = () => {
         {
           webId: userSession?.info.webId ?? "",
           fetch: userSession?.fetch,
-          typePredicate: "solid:privateTypeIndex",
+          isPrivate: true,
           // baseURL: pod,
           // containerUrl: pod + "bookmarks/",
           // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
@@ -80,7 +80,7 @@ const Bookmarks: FC = () => {
               {
                 webId: userSession?.info.webId ?? "",
                 fetch: userSession?.fetch,
-                typePredicate: "solid:privateTypeIndex",
+                isPrivate: true,
                 // baseURL: pod,
                 // containerUrl: pod + "bookmarks/",
                 // typeIndexUrl: "https://reza-soltani.solidcommunity.net/settings/privateTypeIndex.ttl",
@@ -129,7 +129,7 @@ const Bookmarks: FC = () => {
                         const factory = await BookmarkFactory.getInstance({
                           webId: userSession?.info.webId ?? "",
                           fetch: userSession?.fetch,
-                          typePredicate: "solid:privateTypeIndex",
+                          isPrivate: true,
                         });
 
                         const bookmark = await factory.get(b.url);
@@ -147,7 +147,7 @@ const Bookmarks: FC = () => {
                         const factory = await BookmarkFactory.getInstance({
                           webId: userSession?.info.webId ?? "",
                           fetch: userSession?.fetch,
-                          typePredicate: "solid:privateTypeIndex",
+                          isPrivate: true,
                         });
 
                         const bookmark = await factory.update(b.url, {
@@ -168,7 +168,7 @@ const Bookmarks: FC = () => {
                         const factory = await BookmarkFactory.getInstance({
                           webId: userSession?.info.webId ?? "",
                           fetch: userSession?.fetch,
-                          typePredicate: "solid:privateTypeIndex",
+                          isPrivate: true,
                         });
 
                         await factory.remove(b.url);

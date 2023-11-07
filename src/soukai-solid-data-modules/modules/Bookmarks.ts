@@ -52,7 +52,8 @@ export class Bookmark extends BookmarkSchema {
 interface GetInstanceArgs {
     webId: string,
     fetch?: Fetch,
-    typePredicate?: "solid:publicTypeIndex" | "solid:privateTypeIndex"
+    isPrivate?: boolean,
+    // typePredicate?: "solid:publicTypeIndex" | "solid:privateTypeIndex"
 }
 
 
@@ -76,10 +77,11 @@ export class BookmarkFactory {
                 let _containerUrls: string[] = []
                 let _instancesUrls: string[] = []
 
+
                 const typeIndexUrl = await getTypeIndexFromPofile({
                     webId: args?.webId ?? "",
                     fetch: args?.fetch,
-                    typePredicate: args?.typePredicate ?? "solid:privateTypeIndex"
+                    typePredicate: args?.isPrivate ? "solid:privateTypeIndex" : "solid:publicTypeIndex"
                 })
 
                 if (typeIndexUrl) {
