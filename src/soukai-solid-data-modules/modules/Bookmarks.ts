@@ -149,8 +149,8 @@ export class BookmarkFactory {
         }
     }
 
-    async get(id: string) {
-        const res = await Bookmark.findOrFail(id)
+    async get(pk: string) {
+        const res = await Bookmark.findOrFail(pk)
 
         return res
 
@@ -184,9 +184,9 @@ export class BookmarkFactory {
         return await bookmark.save();
     }
 
-    async update(id: string, payload: IBookmark) {
+    async update(pk: string, payload: IBookmark) {
         try {
-            const res = await Bookmark.findOrFail(id)
+            const res = await Bookmark.findOrFail(pk)
             return await res.update(payload)
         } catch (error) {
             console.log(error);
@@ -206,9 +206,9 @@ export class BookmarkFactory {
         // }
     }
 
-    async remove(id: string) {
+    async remove(pk: string) {
         try {
-            const res = await Bookmark.findOrFail(id)
+            const res = await Bookmark.findOrFail(pk)
             return await res.delete()
         } catch (error) {
             console.log(error);
