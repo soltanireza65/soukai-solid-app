@@ -19,6 +19,8 @@ import { SolidDocument, SolidModel } from "soukai-solid";
 import { useUserSession } from "../atoms/userSession.atom";
 import { v4 } from "uuid";
 
+
+// import Movie from "soukai-solid/src/testing/lib/stubs/Movie"
 const Bookmarks: FC = () => {
   const { userSession } = useUserSession();
   const [form, setForm] = useState({ title: "", link: "", hasTopic: "" });
@@ -43,12 +45,13 @@ const Bookmarks: FC = () => {
       );
 
       const bookmarks = await factory.getAll();
-      setBookmarks(bookmarks);
+      console.log("🚀 ~ file: Bookmarks.tsx:46 ~ bookmarks:", bookmarks.map(x => x.getAttributes()))
+      // setBookmarks(bookmarks);
 
-      const res = await Bookmark.findOrFail(
-        "https://solid-dm.solidcommunity.net/bookmarks/index.ttl#9a34eeec-01cc-4191-ad13-58c16ccf11f8"
-      );
-      console.log("🚀 ~ file: Bookmarks.tsx:37 ~ res:", res.getAttributes());
+      // const res = await Bookmark.findOrFail(
+      //   "https://solid-dm.solidcommunity.net/bookmarks/index.ttl#9a34eeec-01cc-4191-ad13-58c16ccf11f8"
+      // );
+      // console.log("🚀 ~ file: Bookmarks.tsx:37 ~ res:", res.getAttributes());
     })();
   }, []);
 
@@ -56,19 +59,22 @@ const Bookmarks: FC = () => {
     <>
       <Flex gap={2}>
         <Input
-          value={form?.hasTopic}
-          onChange={(e) =>
-            setForm((prev: any) => ({ ...prev, hasTopic: e.target.value }))
-          }
-        />
-        <Input
           value={form?.title}
+          placeholder="title"
           onChange={(e) =>
             setForm((prev: any) => ({ ...prev, title: e.target.value }))
           }
         />
         <Input
+          value={form?.hasTopic}
+          placeholder="hasTopic"
+          onChange={(e) =>
+            setForm((prev: any) => ({ ...prev, hasTopic: e.target.value }))
+          }
+        />
+        <Input
           value={form?.link}
+          placeholder="link"
           onChange={(e) =>
             setForm((prev: any) => ({ ...prev, link: e.target.value }))
           }
@@ -89,7 +95,10 @@ const Bookmarks: FC = () => {
               // "bookmarks/"
             );
 
-            const bookmark = await factory.create(form!);
+            const {hasTopic, ...rest} = form
+            const bookmark = await factory.create(rest);
+
+              
 
             // await registerInTypeIndex({
             //   forClass: Bookmark.rdfsClasses[0],
@@ -111,6 +120,7 @@ const Bookmarks: FC = () => {
           <Thead>
             <Tr>
               <Th>Title</Th>
+              {/* <Th>hasTopic</Th> */}
               <Th>Link</Th>
               <Th>actions</Th>
             </Tr>
@@ -119,9 +129,8 @@ const Bookmarks: FC = () => {
             {bookmarks?.map((b, i) => (
               <Tr key={i}>
                 <Td>{b.title}</Td>
-                <Td>
-                  <a>{b.link}</a>
-                </Td>
+                {/* <Td>{b.hasTopic}</Td> */}
+                <Td><a>{b.link}</a></Td>
                 <Td>
                   <ButtonGroup variant="outline">
                     <Button
