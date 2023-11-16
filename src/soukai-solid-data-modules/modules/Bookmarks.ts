@@ -1,6 +1,5 @@
 import {
   createTypeIndex,
-  fromTypeIndex,
   getTypeIndexFromPofile,
   registerInTypeIndex,
 } from "@/utils";
@@ -9,63 +8,72 @@ import {
   Fetch,
   SolidContainer,
   SolidDocument,
+  SolidHasManyRelation,
   SolidModel,
   defineSolidModelSchema,
 } from "soukai-solid";
 import { ISoukaiDocumentBase } from "../shared/contracts";
 import { v4 } from "uuid";
-
 export type ICreateBookmark = {
-  // id: string
-  // url: string
-//   hasTopic: string;
-  title: string;
+  topic: string;
+  label: string;
   link: string;
 };
 
-export type IBookmark = ISoukaiDocumentBase & ICreateBookmark;
-
-export const BookmarkSchema = defineSolidModelSchema({
-  rdfContexts: {
-    bookm: "http://www.w3.org/2002/01/bookmark#",
-    dct: "http://purl.org/dc/terms/",
-  },
-  // primaryKey: "id",
-  rdfsClasses: ["bookm:Bookmark"],
-  timestamps: [TimestampField.CreatedAt, TimestampField.UpdatedAt],
-  fields: {
-    // hasTopic: { type: FieldType.String, rdfProperty: "bookm:hasTopic" },
-    title: { type: FieldType.String, rdfProperty: "dct:title" },
-    link: { type: FieldType.Key, rdfProperty: "bookm:recalls" },
-  },
-
-  //   hasTopi: () => {
-  //     this?.hasMany(Topic, "topic").usingSameDocument(true);
-  //   },
-  // membersRelationship: () {
-  //     return this.hasMany(Person, 'bandUrl').usingSameDocument(true);
-  // }
-});
-
-export class Bookmark extends BookmarkSchema {
-  // protected initialize(attributes: Attributes, exists: boolean): void {
-  // }
-  // newInstance({ url: "url" }, true)
-  // newInstance<T extends Model>(this: T, attributes?: Attributes | undefined, exists?: boolean | undefined): T {
-  // }
-
-  hasTopic() {
-    return this.hasMany(Topic, "topic").usingSameDocument(true);
-  }
-}
-
-interface GetInstanceArgs {
+export interface GetInstanceArgs {
   webId: string;
   fetch?: Fetch;
   isPrivate?: boolean;
-  // typePredicate?: "solid:publicTypeIndex" | "solid:privateTypeIndex"
 }
 
+export type IBookmark = ISoukaiDocumentBase & ICreateBookmark;
+
+export const TopicSchema = defineSolidModelSchema({
+  rdfContexts: {
+    bk: "http://www.w3.org/2002/01/bookmark#",
+  },
+  rdfsClasses: ["bk:hasTopic"],
+  timestamps: false,
+});
+
+export class Topic extends TopicSchema {
+  // topicRelationship() {
+  //   return this.belongsToMany(Bookmark, "topic");
+  // }
+}
+
+export const BookmarkSchema = defineSolidModelSchema({
+  rdfContexts: {
+    bk: "http://www.w3.org/2002/01/bookmark#",
+  },
+
+  rdfsClasses: ["bk:Bookmark"],
+
+  timestamps: false,
+
+  fields: {
+    topic: {
+      type: FieldType.Any,
+      rdfProperty: "bk:hasTopic",
+    },
+    label: {
+      type: FieldType.String,
+      rdfProperty: "rdfs:label",
+    },
+    link: {
+      type: FieldType.Key,
+      rdfProperty: "bk:recalls",
+    },
+  },
+});
+
+export class Bookmark extends BookmarkSchema {
+  topicRelationship() {
+    return this.hasOne(Topic, "topic");
+  }
+  // public relatedTopics!: SolidHasManyRelation<Bookmark, Topic, typeof Topic>;
+}
+// Bookmark
 export class BookmarkFactory {
   private static instance: BookmarkFactory;
 
@@ -84,12 +92,8 @@ export class BookmarkFactory {
 
         defaultContainerUrl = `${baseURL}${
           defaultContainerUrl ?? "bookmarks/"
-        }`; //.replace("//", "/") // normalize url
+        }`;
 
-        console.log(
-          "🚀 ~ file: Bookmarks.ts:57 ~ BookmarkFactory ~ getInstance ~ defaultContainerUrl:",
-          defaultContainerUrl
-        );
         let _containerUrls: string[] = [];
         let _instancesUrls: string[] = [];
 
@@ -103,7 +107,6 @@ export class BookmarkFactory {
 
         if (typeIndexUrl) {
           // const res = await fromTypeIndex(typeIndexUrl, Bookmark)
-          // console.log("🚀 ~ file: Bookmarks.ts:70 ~ BookmarkFactory ~ getInstance ~ res:", res?.map(c => c.url))
 
           const _containers = await SolidContainer.fromTypeIndex(
             typeIndexUrl,
@@ -139,7 +142,7 @@ export class BookmarkFactory {
         } else {
           // Create TypeIndex
           const typeIndexUrl = await createTypeIndex(
-            args?.webId!,
+            args?.webId ?? "",
             "private",
             args?.fetch
           );
@@ -175,6 +178,10 @@ export class BookmarkFactory {
     const allPromise = Promise.all([...containerPromises, ...instancePromises]);
 
     try {
+      console.log(
+        "🚀 ~ file: Bookmarks.ts:197 ~ BookmarkFactory ~ getAll ~ await allPromise:",
+        await allPromise
+      );
       const values = (await allPromise).flat();
       return values;
     } catch (error) {
@@ -205,15 +212,25 @@ export class BookmarkFactory {
 
   async create(payload: ICreateBookmark) {
     const id = v4();
-
+    const { topic, ...rest } = payload;
     const bookmark = new Bookmark({
-      ...payload,
-      id: id,
+      ...rest,
+      // id: id,
       url: `${this.containerUrls[0]}${id}`,
     });
 
-    bookmark.hasTopic().create({topic:"ksdjcnkj"})
-
+    // bookmark.relatedTopics.create({ topic: "..." });
+    bookmark.topicRelationship().create(
+      Topic.at("https://solid-dm.solidcommunity.net/bookmarks/").create({
+        // url: "https://solid-dm.solidcommunity.net/topics/",
+        title: "soukai-solid",
+      })
+    );
+    // .create(new Topic({
+    // url: "https://solid-dm.solidcommunity.net/topics/",
+    // topic: "soukai-solid",
+    // }));
+    // bookmark.topic.create({topic:"https://soukai.js.org/guide/defining-models.html#a-word-about-constructors"})
     // bookmark.url = `${this.containerUrls[0]}${id}#it`
 
     return await bookmark.save();
@@ -246,7 +263,7 @@ export class BookmarkFactory {
       const res = await Bookmark.findOrFail(pk);
       return await res.delete();
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return undefined;
     }
 
@@ -262,20 +279,4 @@ export class BookmarkFactory {
     //     return undefined
     // }
   }
-}
-
-class Topic extends SolidModel {
-  static rdfContexts = {
-    schema: "https://schema.org/",
-  };
-
-  static rdfsClasses = ["Topic"];
-
-  static fields = {
-    topic: FieldType.String,
-    // bandUrl: {
-    //     type: FieldType.Key,
-    //     rdfProperty: 'schema:memberOf',
-    // },
-  };
 }
